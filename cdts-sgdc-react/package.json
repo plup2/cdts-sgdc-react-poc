@@ -1,0 +1,79 @@
+{
+  "name": "cdts-sgdc-react",
+  "version": "0.1.0",
+  "description": "React components for the Centrally Deployed Templates Solution (CDTS)",
+  "keywords": [
+    "CDTS",
+    "SGDC",
+    "Centrally Deployed Templates Solution",
+    "Government of Canada"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wet-boew/cdts-sgdc-react.git"
+  },
+  "license": "MIT",
+  "author": "ESDC/Solution Design Services",
+  "private": true,
+  "main": "./dist/index.js",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@babel/preset-react": "^7.22.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "cross-env": "^7.0.3",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "rm -rf dist && mkdir dist && cross-env NODE_ENV=production babel src -d dist --copy-files",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": "defaults"
+        }
+      ],
+      [
+        "@babel/preset-react",
+        {
+          "runtime": "classic",
+          "development": false
+        }
+      ]
+    ]
+  }
+}

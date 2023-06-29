@@ -1,0 +1,16 @@
+{
+  "name": "cdts-sgdc-react-parent",
+  "version": "0.0.1",
+  "description": "Parent/workspace package",
+  "license": "MIT",
+  "author": "ESDC/Solution Design Services",
+  "private": true,
+  "scripts": {
+    "start": "npm run build --workspace=cdts-sgdc-react && npm start --workspace=sample",
+    "test": "npm run test --workspaces"
+  },
+  "workspaces": [
+    "cdts-sgdc-react",
+    "sample"
+  ]
+}

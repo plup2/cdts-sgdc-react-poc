@@ -7,7 +7,7 @@ import {
     LANGCODE_ENGLISH, LANGCODE_FRENCH, LANGLINK_QUERY_SELECTOR
 } from '../../utilities';
 
-import { resetWetComponent } from '../../utilities/wet';
+import { resetWetComponents } from '../../utilities/wet';
 
 function AppTop({ cdnEnv, config, language, setLanguage, sectionMenu, routerNavigateTo }) {
 
@@ -51,7 +51,7 @@ function AppTop({ cdnEnv, config, language, setLanguage, sectionMenu, routerNavi
 
             //CDTS's Top could use the WET menu component, we need to re-initialize it
             //(WET component will recreate our links, our events need be re-applied. This happens the in global "wb-ready.wb-menu" handler (installed in CDTS component))
-            resetWetComponent('wb-menu');
+            resetWetComponents('wb-menu');
         }}></div>
     );
 }

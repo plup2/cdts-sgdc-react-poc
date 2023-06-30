@@ -29,7 +29,7 @@ function installWETHooks(routerNavigateTo) {
     });
 }
 
-//TODO: resetWetComponent removing the "-inited" ? (or with "key"? or a custom hook? https://stackoverflow.com/a/60949393)
+//TODO: resetWetComponents removing the "-inited" ? (or with "key"? or a custom hook? https://stackoverflow.com/a/60949393)
 //TODO: Confirm exitScript works  (including when a link is added dynamically after everything is loaded - may have to re-trigger wb-exitscript init BUT may have to reset class name and see if there is an adverse effect to re-scanning links)
 //                   _should_ work, but have to ban the use of exitURL
 //                   WHEN: Needs to be redone on EVERY render of ANY React component... ... ...ouch
@@ -42,10 +42,9 @@ function installWETHooks(routerNavigateTo) {
 //TODO: Dependencies Version specifier in main package
 //TODO: SRI on CDTS script and configurable SRI (and/or detect run version)
 //TODO: Is the content slightly more to the right compared to JavaTemplate? Yes it is, not menu or buttons, but fonts are different, Ahmad to investigate?
-//TODO: Confirm no inital double-init when Strict mode is removed (no big deal either way I guess)
 //TODO: Confirm wb-overlay , wb-lbx and wb-navcurr do not need their init to be re-triggered  (some of those are gcintranet only)
 //TODO: Remove console.logs
-async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication, wetCurrentLang, setCdtsLoaded, routerNavigateTo) {
+async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication, wetCurrentLang, setCdtsLoaded, wetCurrentId, setWetId, routerNavigateTo) {
     try {
         const isLangSwitch = (language !== wetCurrentLang);
 
@@ -72,6 +71,7 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
 
             //---[ For initial load of CDTS, trigger re-render of CDTS components before applying refTop/refFooter
             if (setCdtsLoaded) setCdtsLoaded(typeof wet !== 'undefined' ? language : null);
+            //if (setWetId) setWetId(wetCurrentId + 1); //TODO: Confirm/remove
 
             // Create CDTS's localConfig object and apply refTop/refFooter
             wet.localConfig = { cdnEnv: cdtsEnvironment.cdnEnv, base: { ...baseConfig, isApplication, cdtsSetupExcludeCSS: true } }; //eslint-disable-line
@@ -98,6 +98,7 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
             $(document).on("wb-ready.wb", () => {  //eslint-disable-line
                 console.log('!!!!!!!!!!!!!!!!!!!!!!!! WET INITIALIZED !!!!!!!!!!!!!!');
                 if (setCdtsLoaded) setCdtsLoaded(typeof wet !== 'undefined' ? language : null);
+                if (setWetId) setWetId(wetCurrentId + 1);
             });
         }
     }
@@ -162,7 +163,8 @@ async function reinstallWET(cdtsEnvironment) {
  *       - initialLanguage: {string} OPTIONAL - Used to overrides CDTS's language for initial rendering.  
  *                                              Default value will be taken from the `lang` attribute of the `html` element, or 'en' if not found. 
  *                                              Language can be read and controlled with `useCtdsContext().language` and `useCtdsContext().setLanguage`
- *                                              CDTS CURRENTLY ONLY SUPPORTS 'en' and 'fr' languages.
+ *                                              NOTE: CDTS CURRENTLY ONLY SUPPORTS 'en' and 'fr' languages.
+ *                                              NOTE: If this value is different from the current `lang` attribute of the `html` element, inconsistencies in language could occur between CDTS and WET.
  *       - routeNavigateTo: {function} OPTIONAL - If using CDTS's top or side menu or any customized link pointing within the application,
  *                                                this should be a function which takes a "location" parameter that will be called by CDTS links
  *                                                to perform navigation. For example if using react-router-dom, this function would simply be `(location) => router.navigate(location)`
@@ -173,6 +175,7 @@ async function reinstallWET(cdtsEnvironment) {
 function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage, routerNavigateTo, children }) {
 
     const [cdtsLoadedLang, setCdtsLoadedLang] = useState(null); //the language of the currently loaded CDTS, null until CDTS script as been injected
+    const [wetInstanceId, setWetInstanceId] = useState(0); //the WET "instance id", can be used to identify when WET is being reloaded from scratch.
     const [cdtsEnvironment, setCdtsEnvironment] = useState(null);
     const [language, setLanguage] = useState(initialLanguage || defaults.getInitialLanguage());
     const [top, setTop] = useState(initialSetup?.top || {});
@@ -208,7 +211,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         console.log('!!! Using CDTS environment:', tmpEnvironment);
 
         //---[ Load CDTS on page
-        installCDTS(tmpEnvironment, initialSetup?.base || {}, language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, routerNavigateTo);
+        installCDTS(tmpEnvironment, initialSetup?.base || {}, language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, wetInstanceId, setWetInstanceId, routerNavigateTo);
     }, [environment, mode, language, routerNavigateTo]); //eslint-disable-line react-hooks/exhaustive-deps
 
     /*useEffect(() => { //TODO: Remove
@@ -224,7 +227,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
 
     const mainContent = (
         <main role="main" property="mainContentOfPage" className={!sectionMenu ? 'container' : 'col-md-9'} typeof="WebPageElement">
-            <CdtsContext.Provider value={{ cdtsEnvironment, language: cdtsLoadedLang, setLanguage: switchLanguage, top, setTop, preFooter, setPreFooter, footer, setFooter, sectionMenu, setSectionMenu }}>
+            <CdtsContext.Provider value={{ cdtsEnvironment, wetInstanceId, language: cdtsLoadedLang, setLanguage: switchLanguage, top, setTop, preFooter, setPreFooter, footer, setFooter, sectionMenu, setSectionMenu }}>
                 {children}
             </CdtsContext.Provider>
             {cdtsLoadedLang && <PreFooter cdnEnv={cdtsEnvironment.cdnEnv} config={preFooter} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}

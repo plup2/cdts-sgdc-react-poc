@@ -2,7 +2,7 @@
 import { default as React, memo } from 'react';
 
 import { installNavLinkEvents, replaceElementChildren } from '../../utilities';
-import { resetWetComponent } from '../../utilities/wet';
+import { resetWetComponents } from '../../utilities/wet';
 
 function PreFooter({ cdnEnv, config, language, routerNavigateTo }) {
 
@@ -22,7 +22,7 @@ function PreFooter({ cdnEnv, config, language, routerNavigateTo }) {
             installNavLinkEvents(tmpElem, routerNavigateTo);
 
             //CDTS's PreFooter could use the WET share component, we need to re-initialize it
-            resetWetComponent('wb-share');
+            resetWetComponents('wb-share');
         }}></div>
     );
 }

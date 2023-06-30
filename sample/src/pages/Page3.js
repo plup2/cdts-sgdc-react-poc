@@ -1,6 +1,6 @@
 import { default as React, useEffect } from 'react';
 
-import { resetWetComponent, useCdtsContext } from 'cdts-sgdc-react';
+import { resetWetComponents, useCdtsContext } from 'cdts-sgdc-react';
 
 /*
 class Page3 extends React.Component {
@@ -38,22 +38,34 @@ class Page3 extends React.Component {
     }
 }*/
 
+function SomeComp() {
+    const { wetInstanceId } = useCdtsContext();
+
+    return [<div key={wetInstanceId}>Hello from comp!</div>];
+}
 
 function Page3() {
-    const { language: cdtsLanguage } = useCdtsContext();
+    const { wetInstanceId, language: cdtsLanguage } = useCdtsContext();
 
     useEffect(() => {
-        console.log('THIS IS PAGE3 EFFECTED!!!', document.querySelector('.wb-frmvld')?.outerHTML);
-        resetWetComponent('wb-frmvld');
+        console.log('THIS IS PAGE3 EFFECTED!!!');
+        resetWetComponents('wb-frmvld');
     }, []);
 
-    console.log('THIS IS PAGE3 RENDER!!!', document.querySelector('.wb-frmvld')?.outerHTML);
+    console.log('THIS IS PAGE3 RENDER!!!');
     return (<>
         <h2>A WET form...</h2>
         <div id="blabla123" data-othertest={cdtsLanguage}>Hello</div>
-        <button onClick={() => document.getElementById('blabla123')?.setAttribute("data-hello", "world")}>!</button>
-        <button onClick={() => resetWetComponent('wb-frmvld')}>!!</button>
-        <div className="wb-frmvld">
+        <SomeComp />
+        <div>{wetInstanceId}</div>
+        {[<div key={wetInstanceId} data-othertest={cdtsLanguage}>Hello <span id="blabla125">Another</span></div>]}
+        <button onClick={() => {
+            document.getElementById('blabla123')?.setAttribute("data-hello", "world");
+            document.getElementById('blabla125')?.setAttribute("data-hello", "world");
+        }}>!</button>
+        {[<div key={wetInstanceId} data-othertest={cdtsLanguage}>Hello <span id="blabla127">Another?</span></div>]}
+        <button onClick={() => resetWetComponents('wb-frmvld')}>!!</button>
+        {[<div key={wetInstanceId} className="wb-frmvld">
             <form action="#" method="get" id="validation-example" onSubmit={() => alert('Hello There!')}>
                 <div className="form-group">
                     <label htmlFor="title1" className="required"><span className="field-name">Title</span> <strong className="required">(required)</strong></label>
@@ -72,7 +84,10 @@ function Page3() {
                 <input type="submit" value="Submit" className="btn btn-primary" />
                 <input type="reset" value="Reset" className="btn btn-default" />
             </form>
-        </div>
+        </div>]}
+        <SomeComp />
+        <div key={wetInstanceId}>Duplicate?</div>
+        <SomeComp />
     </>
     )
 }

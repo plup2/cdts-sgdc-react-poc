@@ -29,7 +29,6 @@ function installWETHooks(routerNavigateTo) {
     });
 }
 
-//TODO: resetWetComponents removing the "-inited" ? (or with "key"? or a custom hook? https://stackoverflow.com/a/60949393)
 //TODO: Confirm exitScript works  (including when a link is added dynamically after everything is loaded - may have to re-trigger wb-exitscript init BUT may have to reset class name and see if there is an adverse effect to re-scanning links)
 //                   _should_ work, but have to ban the use of exitURL
 //                   WHEN: Needs to be redone on EVERY render of ANY React component... ... ...ouch
@@ -62,16 +61,13 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
         //---[ Add CDTS script for specified environment, version and language
         await appendScriptElement(document.head, `${cdtsEnvironment.baseUrl}cdts/compiled/wet-${language}.js`, 'cdts-main-js');
 
-        //---[ Sub-section components can now be rendered
-        //if (setCdtsLoaded) setCdtsLoaded(typeof wet !== 'undefined' ? language : null); //TODO: sort out this language switching mess
-
         //---[ Process the equivalent of refTop and refFooter
         if (!existingCdtsElem) {
             console.log('!!! CDTS refTop/refFooter');
 
             //---[ For initial load of CDTS, trigger re-render of CDTS components before applying refTop/refFooter
             if (setCdtsLoaded) setCdtsLoaded(typeof wet !== 'undefined' ? language : null);
-            //if (setWetId) setWetId(wetCurrentId + 1); //TODO: Confirm/remove
+            //if (setWetId) setWetId(wetCurrentId + 1); //no need on initial load
 
             // Create CDTS's localConfig object and apply refTop/refFooter
             wet.localConfig = { cdnEnv: cdtsEnvironment.cdnEnv, base: { ...baseConfig, isApplication, cdtsSetupExcludeCSS: true } }; //eslint-disable-line

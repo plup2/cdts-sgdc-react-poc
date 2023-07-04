@@ -19,7 +19,7 @@ npm run build
 Build `cdts-sgdc-react` package and then:
 
 ```
-npm statrt -w sample
+npm start -w sample
 ```
 or
 ```

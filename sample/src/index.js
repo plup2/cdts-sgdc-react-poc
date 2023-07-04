@@ -35,12 +35,12 @@ const cdtsSetup = {
                     subtext: "Subsection 1"
                 },
                 {
-                    subhref: "#",
-                    subtext: "Subsection 2"
+                    subhref: "https://www.google.com",
+                    subtext: "Google-com"
                 },
                 {
-                    subhref: "#",
-                    subtext: "Subsection 3"
+                    subhref: "https://www.google.ca",
+                    subtext: "Google-ca"
                 },
                 {
                     subhref: "/settings",

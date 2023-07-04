@@ -15,7 +15,8 @@ To use, in your project:
       - initialLanguage: {string} OPTIONAL - Used to overrides CDTS's language for initial rendering.  
                                              Default value will be taken from the `lang` attribute of the `html` element, or 'en' if not found. 
                                              Language can be read and controlled with `useCtdsContext().language` and `useCtdsContext().setLanguage`
-                                             CDTS CURRENTLY ONLY SUPPORTS 'en' and 'fr' languages.
+                                             NOTE: CDTS CURRENTLY ONLY SUPPORTS 'en' and 'fr' languages.
+                                             NOTE: If this value is different from the current `lang` attribute of the `html` element, inconsistencies in language could occur between CDTS and WET.
       - routeNavigateTo: {function} OPTIONAL - If using CDTS's top or side menu or any customized link pointing within the application,
                                                this should be a function which takes a "location" parameter that will be called by CDTS links
                                                to perform navigation. For example if using react-router-dom, this function would simply be `(location) => router.navigate(location)`
@@ -25,7 +26,7 @@ To use, in your project:
 
 ## Navigation
 
--to be completed- (expand on routeNavigateTo property)
+-to be completed- (expand on routeNavigateTo property, example with react-router-or refer to sample)
 
 ## CDTS Context
 
@@ -38,3 +39,7 @@ You application will have access to the CDTS context which will allow it to deal
 ### Other CDTS Configuration
 
 -to be completed-
+
+### Using WET components
+
+-to be completed- (WetComponentContainer component?)

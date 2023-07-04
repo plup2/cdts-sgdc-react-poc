@@ -30,16 +30,17 @@ const newTop = {
             href: "#",
             text: "Second Section",
             subLinks: [{
-                subhref: "#",
-                subtext: "Subsection 1"
+                subhref: "https://www.google.com",
+                subtext: "Google-com"
             },
             {
-                subhref: "#",
-                subtext: "Subsection 2"
+                subhref: "https://www.google.ca",
+                subtext: "Google-ca"
             },
             {
-                subhref: "#",
-                subtext: "Subsection 3"
+                subhref: "https://www.google.ca",
+                subtext: "Google-ca-newwin",
+                newWindow: true,
             },
             {
                 subhref: "/settings",
@@ -81,7 +82,7 @@ const newPreFooter = {
 const newFooter = {
     contactLink: [{ href: '/settings' }],
     termsLink: [{ href: '/about' }],
-    privacyLink: [{ href: '/' }],
+    privacyLink: [{ href: 'https://www.google.ca' }],
 
     footerSections: {
         title: "Title",
@@ -94,6 +95,9 @@ const newFooter = {
         }, {
             href: "/",
             text: "Portal footer link 3",
+        }, {
+            href: "https://www.google.ca",
+            text: "Google-ca",
         }]
     },
 
@@ -106,6 +110,10 @@ const newFooter = {
         {
             text: "Link 2",
             href: "/"
+        },
+        {
+            text: "Google-ca",
+            href: "https://www.google.ca"
         }]
     }
 };
@@ -117,14 +125,14 @@ const newSectionMenu = {
             {
                 href: "#", text: "Link 1", subLinks: [
                     { subhref: "#11a", subtext: "Link 1.1 a)" },
-                    { subhref: "#11b", subtext: "Link 1.1 b)" },
-                    { subhref: "#11c", subtext: "Opens in a new window", "newWindow": true },
+                    { subhref: "https://www.google.ca", subtext: "Google-ca" },
+                    { subhref: "https://www.google.ca", subtext: "Google-ca-newwin", "newWindow": true },
                     { subhref: "#11d", subtext: "Link 1.1 d)" }
                 ]
             },
-            { href: "#", text: "Link 2" },
-            { href: "#", text: "Opens in a new window", "newWindow": true },
-            { href: "/settings", text: "Link 4" }
+            { href: "https://www.google.com", text: "Google-com" },
+            { href: "https://www.google.com", text: "Google-com-newwin", "newWindow": true },
+            { href: "/settings", text: "Settings" }
         ]
     },
     {
@@ -133,7 +141,7 @@ const newSectionMenu = {
     },
     {
         sectionName: "Section name ... 27",
-        menuLinks: [{ "href": "#", "text": "Link 1" }]
+        menuLinks: [{ "href": "https://www.google.ca", "text": "Google-ca" }]
     }]
 };
 

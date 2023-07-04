@@ -10,6 +10,13 @@ export function resetWetComponents(...componentNames) {
     if (typeof $ === 'undefined') return;
 
     for (let name of componentNames) {
-        $(`.${name}`).trigger('wb-init'); //eslint-disable-line
+        if (Array.isArray(name)) {
+            for (let n of name) {
+                $(`.${n}`).trigger('wb-init'); //eslint-disable-line
+            }
+        }
+        else {
+            $(`.${name}`).trigger('wb-init'); //eslint-disable-line
+        }
     }
 }

@@ -7,6 +7,16 @@ import App from './App';
 import Cdts from 'cdts-sgdc-react';
 
 const cdtsSetup = {
+    base: {
+        exitSecureSite: {
+            exitScript: true,
+            displayModal: true,
+            exitURL: '/exit', //TODO: Remove
+            exitMsg: 'This is a custom exit message.', //TODO: Remove
+            targetWarning: 'This is a custom new window message.', //TODO: Remove
+            exitDomains: 'www.google.com',
+        },
+    },
     top: {
         appName: [{
             text: "Application name",
@@ -58,15 +68,15 @@ const cdtsSetup = {
         /*headerMenu: {
             text: "Account",
             links: [{
-                href: "/",
-                text: "Link 1"
+                href: "https://www.google.ca",
+                text: "Google-ca"
             },
             {
                 href: "/settings",
                 text: "Link 2",
             }],
             logoutLink: {
-                href: "/about",
+                href: "/form",
                 text: "Logout Link",
             }
         }*/

@@ -3,13 +3,13 @@ import { default as React, memo, useCallback } from 'react';
 //import { useNavigate } from 'react-router-dom'; //can't use useNavigate as it enforces using the react-router's router AND causes a needless re-render of components anyway
 
 import {
-    installNavLinkEvents, replaceElementChildren, installLangLinkEvent, getLanguageLinkConfig,
+    installNavLinkEvents, resetExitScript, replaceElementChildren, installLangLinkEvent, getLanguageLinkConfig,
     LANGCODE_ENGLISH, LANGCODE_FRENCH, LANGLINK_QUERY_SELECTOR
 } from '../../utilities';
 
 import { resetWetComponents } from '../../utilities/wet';
 
-function AppTop({ cdnEnv, config, language, setLanguage, sectionMenu, routerNavigateTo }) {
+function AppTop({ cdnEnv, baseConfig, config, language, setLanguage, sectionMenu, routerNavigateTo }) {
 
     let lngLinkOverriden = false;
 
@@ -52,6 +52,9 @@ function AppTop({ cdnEnv, config, language, setLanguage, sectionMenu, routerNavi
             //CDTS's Top could use the WET menu component, we need to re-initialize it
             //(WET component will recreate our links, our events need be re-applied. This happens the in global "wb-ready.wb-menu" handler (installed in CDTS component))
             resetWetComponents('wb-menu');
+
+            // If exitScript is enabled, (re)apply it for our links
+            if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig); //TODO: I AM HERE!! (what is up with exit popup after a language switch???)
         }}></div>
     );
 }

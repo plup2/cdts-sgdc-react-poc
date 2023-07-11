@@ -7,7 +7,10 @@ import PreFooter from './cdts/PreFooter';
 import Footer from './cdts/Footer';
 import SectionMenu from './cdts/SectionMenu';
 
-import { getCdtsHref, deriveCDTSEnv, findCDTSCssHref, appendScriptElement, installNavLinkEvents, cdtsDefaults as defaults } from '../utilities';
+import {
+    getCdtsHref, deriveCDTSEnv, findCDTSCssHref, appendScriptElement,
+    installNavLinkEvents, cdtsDefaults as defaults, cleanupBaseConfig
+} from '../utilities';
 
 const CDTS_MODE_APP = 'app';
 
@@ -35,6 +38,7 @@ function installWETHooks(routerNavigateTo) {
 //                   WHERE: ???
 //                   Is there a React "postRender" event?
 //                   componentDidUpdate and/or componentDidMount?   https://stackoverflow.com/questions/26556436/react-after-render-code
+//TODO: createDocumentFragment() instead of div element???
 //TODO: Add a property "render even if wet is not ready" for App rendered?
 //TODO: Language switching is not quite working (share component and sporadic exception)
 //TODO: https://github.blog/2021-02-12-avoiding-npm-substitution-attacks/
@@ -70,9 +74,14 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
             //if (setWetId) setWetId(wetCurrentId + 1); //no need on initial load
 
             // Create CDTS's localConfig object and apply refTop/refFooter
-            wet.localConfig = { cdnEnv: cdtsEnvironment.cdnEnv, base: { ...baseConfig, isApplication, cdtsSetupExcludeCSS: true } }; //eslint-disable-line
+            //TODO: Remove sriEnabled false
+            wet.localConfig = { cdnEnv: cdtsEnvironment.cdnEnv, base: { ...baseConfig, isApplication, sriEnabled: false, cdtsSetupExcludeCSS: true } }; //eslint-disable-line
             wet.utilities.applyRefTop(() => { //eslint-disable-line
                 wet.utilities.applyRefFooter(() => { //eslint-disable-line
+                    //(first, call the original CDTS "setup" footer-completed handler)
+                    wet.utilities.onRefFooterCompleted(); //eslint-disable-line
+
+                    //Install our WET hooks
                     installWETHooks(routerNavigateTo);
                     /*$(document).on("wb-ready.wb", () => {  //eslint-disable-line
                         console.log('!!!!!!!!!!!!!!!!!!!!!!!! WET INITIALIZED !!!!!!!!!!!!!!');
@@ -87,9 +96,10 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
             wet.builder.installRefFooter(cdtsParams, () => installWETHooks(routerNavigateTo)); //eslint-disable-line*/
         }
         else if (isLangSwitch) {
-            await reinstallWET(cdtsEnvironment);
-            installWETHooks(routerNavigateTo);
+            await reinstallWET(cdtsEnvironment, language);
+            installWETHooks(routerNavigateTo); //TODO: Confirm we still need
 
+            //TODO: Cleanup
             //---[ When re-loading WET following a language switch, wait until WET is fuilly initialized before trigering re-renderof CDTS components.
             $(document).on("wb-ready.wb", () => {  //eslint-disable-line
                 console.log('!!!!!!!!!!!!!!!!!!!!!!!! WET INITIALIZED !!!!!!!!!!!!!!');
@@ -117,17 +127,25 @@ async function reinstallWET(cdtsEnvironment) {
             script.remove();
         }
     });
+
+    document.head.querySelectorAll('object').forEach((o) => {
+        const src = o.data || '';
+        if (src.startsWith(cdtsEnvironment.baseUrl) && src.includes('/wet-boew/js/')) {
+            console.log('REMOVING OBJECT>>>>', o);
+            o.remove();
+        }
+    });
     //(don't add anything back, WET will auto-inject what it needs in the proper language)
 
     //---[ BODY
 
     const reinsertElems = [];
 
-    //Remove WET-related script from body
+    //Remove WET-related script from body (do NOT remove jqeury - it leads to problems)
     //TODO: Make sure it is ok for gcIntranet as well
     document.body.querySelectorAll('script').forEach((script) => {
         const src = script.src || '';
-        if (src.startsWith(cdtsEnvironment.baseUrl) && (src.includes('/wet-boew/js/') || src.endsWith('/cdts/cdtscustom.js'))) {
+        if (src.startsWith(cdtsEnvironment.baseUrl) && (src.includes('/wet-boew/js/') || src.endsWith('/cdts/cdtscustom.js')) && (!src.endsWith('/jquery.min.js'))) {
             reinsertElems.push(script); //keep track
             script.remove();
         }
@@ -135,7 +153,11 @@ async function reinstallWET(cdtsEnvironment) {
 
     //Undo a few other HTML elements/attributes added by WET during its initialization
     document.getElementById('wb-rsz')?.remove();
-    document.documentElement.setAttribute('class', ''); //clear class on HTML other what WET puts back is not exactly same as when done from scratch
+    document.documentElement.setAttribute('class', ''); //clear class on HTML otherwise what WET puts back is not exactly same as when done from scratch
+
+    //Unbind ALL jquery events (we're assuming we're the only one using it...could be refined later) (https://stackoverflow.com/a/64500579)
+    //side-note: to get list of event handlers on (for example) document: $._data($(document).get(0), 'events')
+    if (typeof $ !== 'undefined') $(document).off().find("*").off(); //eslint-disable-line
 
     //Add back the elements we removed from body in the same order
     for (const elem of reinsertElems) {
@@ -174,6 +196,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
     const [wetInstanceId, setWetInstanceId] = useState(0); //the WET "instance id", can be used to identify when WET is being reloaded from scratch.
     const [cdtsEnvironment, setCdtsEnvironment] = useState(null);
     const [language, setLanguage] = useState(initialLanguage || defaults.getInitialLanguage());
+    const [baseConfig, setBaseConfig] = useState(initialSetup?.base);
     const [top, setTop] = useState(initialSetup?.top || {});
     const [preFooter, setPreFooter] = useState(initialSetup?.preFooter || {});
     const [footer, setFooter] = useState(initialSetup?.footer || {});
@@ -194,7 +217,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
                 tmpEnvironment = deriveCDTSEnv(cssHref) || defaults.cdtsEnvironment;
             }
             else {
-                console.warn('CDTS CSS link element not found in document HEAD. Defaults will be used for CDTS environment selection, page may not render properly.');
+                console.warn('CDTS: CSS link element not found in document HEAD. Defaults will be used for CDTS environment selection, page may not render properly.');
                 tmpEnvironment = defaults.cdtsEnvironment;
             }
         }
@@ -207,7 +230,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         console.log('!!! Using CDTS environment:', tmpEnvironment);
 
         //---[ Load CDTS on page
-        installCDTS(tmpEnvironment, initialSetup?.base || {}, language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, wetInstanceId, setWetInstanceId, routerNavigateTo);
+        installCDTS(tmpEnvironment, cleanupBaseConfig(initialSetup?.base, true), language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, wetInstanceId, setWetInstanceId, routerNavigateTo);
     }, [environment, mode, language, routerNavigateTo]); //eslint-disable-line react-hooks/exhaustive-deps
 
     /*useEffect(() => { //TODO: Remove
@@ -223,10 +246,10 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
 
     const mainContent = (
         <main role="main" property="mainContentOfPage" className={!sectionMenu ? 'container' : 'col-md-9'} typeof="WebPageElement">
-            <CdtsContext.Provider value={{ cdtsEnvironment, wetInstanceId, language: cdtsLoadedLang, setLanguage: switchLanguage, top, setTop, preFooter, setPreFooter, footer, setFooter, sectionMenu, setSectionMenu }}>
+            <CdtsContext.Provider value={{ cdtsEnvironment, wetInstanceId, language: cdtsLoadedLang, setLanguage: switchLanguage, baseConfig, setBaseConfig, top, setTop, preFooter, setPreFooter, footer, setFooter, sectionMenu, setSectionMenu }}>
                 {children}
             </CdtsContext.Provider>
-            {cdtsLoadedLang && <PreFooter cdnEnv={cdtsEnvironment.cdnEnv} config={preFooter} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}
+            {cdtsLoadedLang && <PreFooter cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={preFooter} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}
         </main>
     );
 
@@ -234,20 +257,20 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         <>
             {cdtsLoadedLang
                 && (mode === CDTS_MODE_APP
-                    ? <AppTop cdnEnv={cdtsEnvironment.cdnEnv} config={top} language={cdtsLoadedLang} setLanguage={switchLanguage} sectionMenu={sectionMenu} routerNavigateTo={routerNavigateTo} />
-                    : <Top cdnEnv={cdtsEnvironment.cdnEnv} config={top} language={cdtsLoadedLang} setLanguage={switchLanguage} sectionMenu={sectionMenu} routerNavigateTo={routerNavigateTo} />)}
+                    ? <AppTop cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={top} language={cdtsLoadedLang} setLanguage={switchLanguage} sectionMenu={sectionMenu} routerNavigateTo={routerNavigateTo} />
+                    : <Top cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={top} language={cdtsLoadedLang} setLanguage={switchLanguage} sectionMenu={sectionMenu} routerNavigateTo={routerNavigateTo} />)}
             {!sectionMenu
                 ? mainContent
                 : <div className="container">
                     <div className="row">
-                        {cdtsLoadedLang && <SectionMenu cdnEnv={cdtsEnvironment.cdnEnv} config={sectionMenu} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}
+                        {cdtsLoadedLang && <SectionMenu cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={sectionMenu} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}
                         {mainContent}
                     </div>
                 </div>}
             {cdtsLoadedLang
                 && (mode === CDTS_MODE_APP
-                    ? <AppFooter cdnEnv={cdtsEnvironment.cdnEnv} config={footer} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />
-                    : <Footer cdnEnv={cdtsEnvironment.cdnEnv} config={footer} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />)}
+                    ? <AppFooter cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={footer} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />
+                    : <Footer cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={footer} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />)}
         </>
     );
 }

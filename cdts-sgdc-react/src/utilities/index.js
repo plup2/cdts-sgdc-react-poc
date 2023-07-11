@@ -67,7 +67,7 @@ export function deriveCDTSEnv(cssHref) {
             cdnEnv = theme === 'gcweb' ? 'esdcprod' : 'prod'; //depends on theme
         }
         else if (hostname === 'templates.service.gc.ca') {
-            cdnEnv = 'esdcprod';
+            cdnEnv = 'esdcprod'; //TODO: Investigate whether we should be theme dependent (and probable reverse cdts.service.canada.ca, which is currently wrong)
         }
         else {
             cdnEnv = baseUrl; //anything else is taken as-is minux the stylesheet's location, including trailing slash
@@ -92,7 +92,7 @@ export function deriveCDTSEnv(cssHref) {
 
 /** Locates the CDTS CSS link in the current document. Returns null if not found  */
 export function findCDTSCssHref() {
-    return Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).map((e) => e.getAttribute('href')?.toLowerCase()).find((href) => href?.includes('/cdts/cdts-')) || null;
+    return Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).map((e) => e.getAttribute('href')).find((href) => href?.includes('/cdts/cdts-')) || null;
 }
 
 /** Appends the a script element with the specified src and id to the parentElement. Returns a Promise that will be completed when the script's load event triggers. */
@@ -183,4 +183,49 @@ export function installNavLinkEvents(parentElem, navigateToCallback) {
             });
         }
     });
+}
+
+/**
+ * This function inspects the specified CDTS "base" config and
+ * removes any unsupported elements. Returns original object if no
+ * modification is needed, otherwise returns new object containing "sanitized" setup.
+ */
+export function cleanupBaseConfig(baseConfig, issueWarning = false) {
+    let vtr = baseConfig || {};
+
+    if (baseConfig.exitSecureSite?.exitURL) {
+        if (issueWarning) console.warn('CDTS: Configuration base.exitSecureSite.exitURL not supported for React template, property will be ignored.');
+        vtr = { ...vtr };
+        delete vtr.exitSecureSite.exitURL;
+    }
+
+    return vtr;
+}
+
+export function resetExitScript(parentElem, baseConfig) {
+    if (!baseConfig) return;
+    if (!wet.utilities.wetExitScript) return; //eslint-disable-line    
+
+    const config = cleanupBaseConfig(baseConfig);
+
+    //if not enabled (including displayModal), don't do anything
+    //(we don't support exitUrl, which gets removed by cleanup, so if displayModal is false it's not woth continuing)
+    if (!(config.exitSecureSite?.exitScript && config.exitSecureSite?.displayModal)) return;
+
+    //get applicable `a` elements 
+    const elems = Array.from(parentElem.querySelectorAll('a[href]:not(.wb-exitscript)')); //(all `a` that have `href` but not exit script class already)
+    console.log('Re-applying exit script...', elems.length); //TODO: Remove
+
+    wet.utilities.wetExitScript( //eslint-disable-line 
+        config.exitSecureSite.displayModal != null ? config.exitSecureSite.displayModal.toString() : 'undefined',
+        config.exitSecureSite.exitURL != null ? config.exitSecureSite.exitURL : 'undefined',
+        config.exitSecureSite.exitDomains != null ? config.exitSecureSite.exitDomains : 'undefined',
+        config.exitSecureSite.exitMsg != null ? config.exitSecureSite.exitMsg : 'undefined',
+        config.exitSecureSite.yesMsg != null ? config.exitSecureSite.yesMsg : 'undefined',
+        config.exitSecureSite.cancelMsg != null ? config.exitSecureSite.cancelMsg : 'undefined',
+        config.exitSecureSite.msgBoxHeader != null ? config.exitSecureSite.msgBoxHeader : 'undefined',
+        config.exitSecureSite.targetWarning != null ? config.exitSecureSite.targetWarning : 'undefined',
+        config.exitSecureSite.displayModalForNewWindow != null ? config.exitSecureSite.displayModalForNewWindow.toString() : 'undefined',
+        elems
+    );
 }

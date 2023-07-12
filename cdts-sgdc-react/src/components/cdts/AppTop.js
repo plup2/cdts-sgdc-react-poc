@@ -38,6 +38,8 @@ function AppTop({ cdnEnv, baseConfig, config, language, setLanguage, sectionMenu
     const tmpElem = document.createElement('div');
     //(can't use outerHTML on an orphan element)
     tmpElem.insertAdjacentHTML('afterbegin', wet.builder.appTop(topConfig));
+    // If exitScript is enabled, (re)apply it for our links
+    if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig);
 
     return (
         <div id="cdts-react-def-top" ref={(ref) => {
@@ -52,9 +54,6 @@ function AppTop({ cdnEnv, baseConfig, config, language, setLanguage, sectionMenu
             //CDTS's Top could use the WET menu component, we need to re-initialize it
             //(WET component will recreate our links, our events need be re-applied. This happens the in global "wb-ready.wb-menu" handler (installed in CDTS component))
             resetWetComponents('wb-menu');
-
-            // If exitScript is enabled, (re)apply it for our links
-            if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig); //TODO: I AM HERE!! (what is up with exit popup after a language switch???)
         }}></div>
     );
 }

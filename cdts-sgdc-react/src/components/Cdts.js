@@ -39,11 +39,11 @@ function installWETHooks(routerNavigateTo) {
 //                   Is there a React "postRender" event?
 //                   componentDidUpdate and/or componentDidMount?   https://stackoverflow.com/questions/26556436/react-after-render-code
 //TODO: createDocumentFragment() instead of div element???
+//TODO: Try with top-level event handler instead of adding event listener to each individual link for nav and lang in each sub-component (https://stackoverflow.com/questions/14265397/add-event-on-element-load-before-it-is-in-the-dom)
+//TODO: SRI on CDTS script and configurable SRI (and/or detect run version)
 //TODO: Add a property "render even if wet is not ready" for App rendered?
-//TODO: Language switching is not quite working (share component and sporadic exception)
 //TODO: https://github.blog/2021-02-12-avoiding-npm-substitution-attacks/
 //TODO: Dependencies Version specifier in main package
-//TODO: SRI on CDTS script and configurable SRI (and/or detect run version)
 //TODO: Is the content slightly more to the right compared to JavaTemplate? Yes it is, not menu or buttons, but fonts are different, Ahmad to investigate?
 //TODO: Confirm wb-overlay , wb-lbx and wb-navcurr do not need their init to be re-triggered  (some of those are gcintranet only)
 //TODO: Remove console.logs

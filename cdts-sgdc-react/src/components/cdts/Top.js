@@ -2,11 +2,11 @@
 import { default as React, memo, useCallback } from 'react';
 
 import {
-    replaceElementChildren, installNavLinkEvents, installLangLinkEvent, getLanguageLinkConfig,
+    replaceElementChildren, resetExitScript, installNavLinkEvents, installLangLinkEvent, getLanguageLinkConfig,
     LANGCODE_ENGLISH, LANGCODE_FRENCH, LANGLINK_QUERY_SELECTOR
 } from '../../utilities';
 
-function Top({ cdnEnv, config, language, setLanguage, sectionMenu, routerNavigateTo }) {
+function Top({ cdnEnv, baseConfig, config, language, setLanguage, sectionMenu, routerNavigateTo }) {
 
     let lngLinkOverriden = false;
 
@@ -35,6 +35,8 @@ function Top({ cdnEnv, config, language, setLanguage, sectionMenu, routerNavigat
     const tmpElem = document.createElement('div');
     //(can't use outerHTML on an orphan element)
     tmpElem.insertAdjacentHTML('afterbegin', wet.builder.top(topConfig));
+    // If exitScript is enabled, (re)apply it for our links
+    if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig);
 
     return (
         <div id="cdts-react-def-top" ref={(ref) => {

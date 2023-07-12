@@ -93,4 +93,4 @@ const router = createBrowserRouter([{ path: "*", element: <App /> }]);
 const root = ReactDOM.createRoot(document.getElementById('root'));
 //TODO: Move StrictMode around App, see how it affect initial rendering on CDTS
 root.render(/*<React.StrictMode>*/
-    <Cdts initialSetup={cdtsSetup} routerNavigateTo={(location) => router.navigate(location)}><RouterProvider router={router} /></Cdts>/*</React.StrictMode>*/);
+    <Cdts mode="common" initialSetup={cdtsSetup} routerNavigateTo={(location) => router.navigate(location)}><RouterProvider router={router} /></Cdts>/*</React.StrictMode>*/);

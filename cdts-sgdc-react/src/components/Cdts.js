@@ -1,16 +1,15 @@
 import { default as React, useEffect, useState, createContext, useContext, useCallback } from 'react';
 
-import AppTop from './cdts/AppTop';
-import AppFooter from './cdts/AppFooter';
-import Top from './cdts/Top';
 import PreFooter from './cdts/PreFooter';
-import Footer from './cdts/Footer';
 import SectionMenu from './cdts/SectionMenu';
 
 import {
+    cdtsDefaults as defaults,
     getCdtsHref, deriveCDTSEnv, findCDTSCssHref, appendScriptElement,
-    installNavLinkEvents, cdtsDefaults as defaults, cleanupBaseConfig
+    installNavLinkEvents, resetExitScript, cleanupBaseConfig,
+    getLanguageLinkConfig, installLangLinkEvent, LANGCODE_ENGLISH, LANGCODE_FRENCH, LANGLINK_QUERY_SELECTOR,
 } from '../utilities';
+import { resetWetComponents } from '../utilities/wet';
 
 const CDTS_MODE_APP = 'app';
 
@@ -38,7 +37,6 @@ function installWETHooks(routerNavigateTo) {
 //                   WHERE: ???
 //                   Is there a React "postRender" event?
 //                   componentDidUpdate and/or componentDidMount?   https://stackoverflow.com/questions/26556436/react-after-render-code
-//TODO: createDocumentFragment() instead of div element???
 //TODO: Try with top-level event handler instead of adding event listener to each individual link for nav and lang in each sub-component (https://stackoverflow.com/questions/14265397/add-event-on-element-load-before-it-is-in-the-dom)
 //TODO: SRI on CDTS script and configurable SRI (and/or detect run version)
 //TODO: Add a property "render even if wet is not ready" for App rendered?
@@ -233,14 +231,89 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         installCDTS(tmpEnvironment, cleanupBaseConfig(initialSetup?.base, true), language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, wetInstanceId, setWetInstanceId, routerNavigateTo);
     }, [environment, mode, language, routerNavigateTo]); //eslint-disable-line react-hooks/exhaustive-deps
 
-    /*useEffect(() => { //TODO: Remove
-        console.log('!!!!!!!!!!!!!!!!!!!!!! CDTS USEEFFECT [] !!!!!!!!!!!!!!!!!!!!', cdtsLoadedLang);
-    }, [cdtsLoadedLang]);*/
-
     const switchLanguage = useCallback((newLang) => {
         document.documentElement.setAttribute('lang', newLang);
         setLanguage(newLang);
     }, [setLanguage]);
+
+    const langLinkCallback = useCallback((e) => {
+        let newLang = null;
+        if (e && e.currentTarget && e.currentTarget.getAttribute) newLang = e.currentTarget.getAttribute("lang")?.toLowerCase();
+        if (!newLang) newLang = cdtsLoadedLang === LANGCODE_FRENCH ? LANGCODE_ENGLISH : LANGCODE_FRENCH; //if somehow we couldn't get to the anchor's lang, flip current language as a fallback
+
+        switchLanguage(newLang);
+    }, [cdtsLoadedLang, switchLanguage]);
+
+    //NOTE: Because WET imposes rigid rules about the structure of the HTML, we can't really have AppTop/Top/AppFooter/Footer as React components
+    //      since they have to be directly under <body>. We'll instead handle those sections "directly" in useEffects
+    useEffect(function installTop() { // *************************** TOP
+        console.log('!!!!!!!!!!!!!!!!!!!!!! CDTS USEEFFECT [top] !!!!!!!!!!!!!!!!!!!!', cdtsLoadedLang);
+        if (!cdtsLoadedLang) return;
+
+        let lngLinkOverriden = false;
+        const topConfig = { cdnEnv: cdtsEnvironment.cdnEnv, ...top, topSecMenu: sectionMenu != null };
+
+        //NOTE: Create the default language link if undefined/null, but leave empty if empty array as a way for users to disable language link.
+        if (!topConfig.lngLinks) {
+            topConfig.lngLinks = [getLanguageLinkConfig(cdtsLoadedLang === LANGCODE_FRENCH ? LANGCODE_ENGLISH : LANGCODE_FRENCH)]; //get link config for "opposite" language
+            lngLinkOverriden = true;
+        }
+
+        //---[ Create TOP
+        const tmpElem = document.createElement('template'); //top's content must be directly in <body>, so use "template" element as temporary container
+        //(can't use outerHTML on an orphan element)
+        tmpElem.insertAdjacentHTML('afterbegin', mode === CDTS_MODE_APP ? wet.builder.appTop(topConfig) : wet.builder.top(topConfig)); //eslint-disable-line
+        //inject a "marker/tag" class
+        for (let e of tmpElem.children) e.classList.add('cdtsreact-top-tag'); //using `children` and not `childNodes`, we only want elements
+        // If exitScript is enabled, (re)apply it for our links
+        if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig);
+
+        //---[ Remove any elements from previous runs
+        document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
+
+        //---[ Install right after body
+        //TODO: Ahmad: This means AppTop/Top/AppFooter/Footer's top level content has to be elements, is that a concern?
+        for (let i = tmpElem.children.length - 1; i >= 0; i--) {
+            const e = tmpElem.children[i];
+            document.body.insertAdjacentElement('afterbegin', e);
+            installNavLinkEvents(e, routerNavigateTo); //Go through all the links we added to add handler to relative ones
+        }
+        if (lngLinkOverriden) installLangLinkEvent(document.body.querySelector(LANGLINK_QUERY_SELECTOR), langLinkCallback); //If we installed our own language link, install the handler for it
+        if (mode === CDTS_MODE_APP) {
+            //CDTS's appTop could use the WET menu component, we need to re-initialize it
+            //(WET component will recreate our links, so our events need be re-applied. This happens the in global "wb-ready.wb-menu" handler (installed in installWetHooks))
+            resetWetComponents('wb-menu');
+        }
+    }, [top, mode, cdtsEnvironment, baseConfig, cdtsLoadedLang, switchLanguage, langLinkCallback, sectionMenu, routerNavigateTo]);
+
+    useEffect(function installFooter() { // *************************** FOOTER
+        console.log('!!!!!!!!!!!!!!!!!!!!!! CDTS USEEFFECT [footer] !!!!!!!!!!!!!!!!!!!!', cdtsLoadedLang);
+        if (!cdtsLoadedLang) return;
+
+        //---[ Create FOOTER
+        const footerConfig = { cdnEnv: cdtsEnvironment.cdnEnv, ...footer };
+        const tmpElem = document.createElement('template'); //footer's content must be directly in <body>, so use "template" element as temporary container
+        //(can't use outerHTML on an orphan element)
+        tmpElem.insertAdjacentHTML('afterbegin', mode === CDTS_MODE_APP ? wet.builder.appFooter(footerConfig) : wet.builder.footer(footerConfig)); //eslint-disable-line
+        //inject a "marker/tag" class
+        for (let e of tmpElem.children) e.classList.add('cdtsreact-footer-tag'); //using `children` and not `childNodes`, we only want elements
+        // If exitScript is enabled, (re)apply it for our links
+        if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig);
+
+        //---[ Remove any elements from previous runs
+        document.body.querySelectorAll('.cdtsreact-footer-tag').forEach((e) => e.remove());
+
+        //---[ Install right after body
+        const children = Array.from(tmpElem.children); //don't want a live list for this, so convert to array
+        for (let i = 0; i < children.length; i++) {
+            const e = children[i];
+            document.body.appendChild(e);
+            installNavLinkEvents(e, routerNavigateTo); //Go through all the links we added to add handler to relative ones
+        }
+    }, [footer, mode, cdtsEnvironment, baseConfig, cdtsLoadedLang, routerNavigateTo]);
+    //TODO: I AM HERE
+    //TODO: "main" also has to be directly under body
+    //TODO: Finish exitscript in preFooter and sectionMenu
 
     console.log('!!! RENDER CDTS');
 
@@ -255,10 +328,6 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
 
     return (
         <>
-            {cdtsLoadedLang
-                && (mode === CDTS_MODE_APP
-                    ? <AppTop cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={top} language={cdtsLoadedLang} setLanguage={switchLanguage} sectionMenu={sectionMenu} routerNavigateTo={routerNavigateTo} />
-                    : <Top cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={top} language={cdtsLoadedLang} setLanguage={switchLanguage} sectionMenu={sectionMenu} routerNavigateTo={routerNavigateTo} />)}
             {!sectionMenu
                 ? mainContent
                 : <div className="container">
@@ -267,10 +336,6 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
                         {mainContent}
                     </div>
                 </div>}
-            {cdtsLoadedLang
-                && (mode === CDTS_MODE_APP
-                    ? <AppFooter cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={footer} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />
-                    : <Footer cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={footer} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />)}
         </>
     );
 }

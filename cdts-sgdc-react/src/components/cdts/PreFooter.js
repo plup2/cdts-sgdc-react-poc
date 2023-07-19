@@ -1,10 +1,10 @@
 /* eslint no-undef: "off" */
 import { default as React, memo } from 'react';
 
-import { installNavLinkEvents, replaceElementChildren } from '../../utilities';
+import { installNavLinkEvents, replaceElementChildren, resetExitScript } from '../../utilities';
 import { resetWetComponents } from '../../utilities/wet';
 
-function PreFooter({ cdnEnv, config, language, routerNavigateTo }) {
+function PreFooter({ cdnEnv, baseConfig, config, language, routerNavigateTo }) {
 
     console.log('!!!! CDTS RENDER PreFooter');
 
@@ -13,6 +13,7 @@ function PreFooter({ cdnEnv, config, language, routerNavigateTo }) {
     const tmpElem = document.createElement('div');
     //(can't use outerHTML on an orphan element)
     tmpElem.insertAdjacentHTML('afterbegin', wet.builder.preFooter({ cdnEnv, ...config }));
+    if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig);
 
     return (
         <div id="cdts-react-def-preFooter" ref={(ref) => {

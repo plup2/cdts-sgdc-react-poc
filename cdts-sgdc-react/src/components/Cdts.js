@@ -31,17 +31,13 @@ function installWETHooks(routerNavigateTo) {
     });
 }
 
-//TODO: Confirm exitScript works  (including when a link is added dynamically after everything is loaded - may have to re-trigger wb-exitscript init BUT may have to reset class name and see if there is an adverse effect to re-scanning links)
-//                   _should_ work, but have to ban the use of exitURL
-//                   WHEN: Needs to be redone on EVERY render of ANY React component... ... ...ouch
-//                   WHERE: ???
-//                   Is there a React "postRender" event?
-//                   componentDidUpdate and/or componentDidMount?   https://stackoverflow.com/questions/26556436/react-after-render-code
+//TODO: Make nav link ignorable
 //TODO: Try with top-level event handler instead of adding event listener to each individual link for nav and lang in each sub-component (https://stackoverflow.com/questions/14265397/add-event-on-element-load-before-it-is-in-the-dom)
 //TODO: SRI on CDTS script and configurable SRI (and/or detect run version)
 //TODO: Add a property "render even if wet is not ready" for App rendered?
+//TODO: "main" also has to be directly under body?  (confirm, maybe WET will be fixed?)
 //TODO: https://github.blog/2021-02-12-avoiding-npm-substitution-attacks/
-//TODO: Dependencies Version specifier in main package
+//TODO: Dependencies Version specifier in main package  (and update versions?)
 //TODO: Is the content slightly more to the right compared to JavaTemplate? Yes it is, not menu or buttons, but fonts are different, Ahmad to investigate?
 //TODO: Confirm wb-overlay , wb-lbx and wb-navcurr do not need their init to be re-triggered  (some of those are gcintranet only)
 //TODO: Remove console.logs
@@ -272,7 +268,6 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
 
         //---[ Install right after body
-        //TODO: Ahmad: This means AppTop/Top/AppFooter/Footer's top level content has to be elements, is that a concern?
         for (let i = tmpElem.children.length - 1; i >= 0; i--) {
             const e = tmpElem.children[i];
             document.body.insertAdjacentElement('afterbegin', e);
@@ -311,9 +306,6 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
             installNavLinkEvents(e, routerNavigateTo); //Go through all the links we added to add handler to relative ones
         }
     }, [footer, mode, cdtsEnvironment, baseConfig, cdtsLoadedLang, routerNavigateTo]);
-    //TODO: I AM HERE
-    //TODO: "main" also has to be directly under body
-    //TODO: Finish exitscript in preFooter and sectionMenu
 
     console.log('!!! RENDER CDTS');
 

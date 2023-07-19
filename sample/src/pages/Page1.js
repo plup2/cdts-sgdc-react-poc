@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-import { useCdtsContext } from "cdts-sgdc-react";
+import { useCdtsContext } from 'cdts-sgdc-react';
 
 const newTop = {
     appName: [{

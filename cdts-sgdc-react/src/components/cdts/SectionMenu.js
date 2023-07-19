@@ -1,9 +1,9 @@
 /* eslint no-undef: "off" */
 import { default as React, memo } from 'react';
 
-import { installNavLinkEvents, replaceElementChildren } from '../../utilities';
+import { installNavLinkEvents, replaceElementChildren, resetExitScript } from '../../utilities';
 
-function SectionMenu({ cdnEnv, config, language, routerNavigateTo }) {
+function SectionMenu({ cdnEnv, baseConfig, config, language, routerNavigateTo }) {
 
     console.log('!!!! CDTS RENDER SectionMenu');
 
@@ -12,6 +12,7 @@ function SectionMenu({ cdnEnv, config, language, routerNavigateTo }) {
     const tmpElem = document.createElement('div');
     //(can't use outerHTML on an orphan element)
     tmpElem.insertAdjacentHTML('afterbegin', wet.builder.secmenu({ cdnEnv, ...config }));
+    if (baseConfig?.exitSecureSite?.exitScript) resetExitScript(tmpElem, baseConfig);
 
     return (
         <nav id="wb-sec" className="wb-sec col-md-3" typeof="SiteNavigationElement" role="navigation" ref={(ref) => {

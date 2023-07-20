@@ -67,7 +67,7 @@ export function deriveCDTSEnv(cssHref) {
             cdnEnv = theme === 'gcweb' ? 'esdcprod' : 'prod'; //depends on theme
         }
         else if (hostname === 'templates.service.gc.ca') {
-            cdnEnv = 'esdcprod'; //TODO: Investigate whether we should be theme dependent (and probable reverse cdts.service.canada.ca, which is currently wrong)
+            cdnEnv = 'esdcprod';
         }
         else {
             cdnEnv = baseUrl; //anything else is taken as-is minux the stylesheet's location, including trailing slash
@@ -96,12 +96,16 @@ export function findCDTSCssHref() {
 }
 
 /** Appends the a script element with the specified src and id to the parentElement. Returns a Promise that will be completed when the script's load event triggers. */
-export function appendScriptElement(parentElement, src, id) {
+export function appendScriptElement(parentElement, src, id, sriHash) {
 
     return new Promise(function cdase(resolve, reject) {
         const elem = document.createElement('script');
 
         if (id) elem.setAttribute('id', id);
+        if (sriHash) {
+            elem.setAttribute('integrity', sriHash);
+            elem.setAttribute('crossorigin', 'anonymous');
+        }
         elem.onload = resolve.bind(null);
         elem.onerror = reject;
         elem.setAttribute('src', src);
@@ -221,7 +225,6 @@ export function resetExitScript(parentElem, baseConfig) {
 
     //get applicable `a` elements 
     const elems = Array.isArray(parentElem) ? parentElem : Array.from(parentElem.querySelectorAll('a[href]:not(.wb-exitscript)')); //(all `a` that have `href` but not exit script class already)
-    console.log('Re-applying exit script...', elems.length); //TODO: Remove
 
     wet.utilities.wetExitScript( //eslint-disable-line 
         config.exitSecureSite.displayModal != null ? config.exitSecureSite.displayModal.toString() : 'undefined',

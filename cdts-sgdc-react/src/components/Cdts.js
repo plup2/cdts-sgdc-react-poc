@@ -10,6 +10,7 @@ import {
     getLanguageLinkConfig, installLangLinkEvent, LANGCODE_ENGLISH, LANGCODE_FRENCH, LANGLINK_QUERY_SELECTOR,
 } from '../utilities';
 import { resetWetComponents } from '../utilities/wet';
+import themeSRIHashes from '../utilities/sri';
 
 const CDTS_MODE_APP = 'app';
 
@@ -31,9 +32,6 @@ function installWETHooks(routerNavigateTo) {
     });
 }
 
-//TODO: Make nav link ignorable
-//TODO: Try with top-level event handler instead of adding event listener to each individual link for nav and lang in each sub-component (https://stackoverflow.com/questions/14265397/add-event-on-element-load-before-it-is-in-the-dom)
-//TODO: SRI on CDTS script and configurable SRI (and/or detect run version)
 //TODO: Add a property "render even if wet is not ready" for App rendered?
 //TODO: "main" also has to be directly under body?  (confirm, maybe WET will be fixed?)
 //TODO: https://github.blog/2021-02-12-avoiding-npm-substitution-attacks/
@@ -44,6 +42,7 @@ function installWETHooks(routerNavigateTo) {
 async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication, wetCurrentLang, setCdtsLoaded, wetCurrentId, setWetId, routerNavigateTo) {
     try {
         const isLangSwitch = (language !== wetCurrentLang);
+        const sriEnabled = baseConfig?.sriEnabled !== false; //if sriEnabled is not explicitly set to false, default to true
 
         //---[ Remove existing element (if any)
         const existingCdtsElem = document.getElementById('cdts-main-js');
@@ -57,7 +56,8 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
         }
 
         //---[ Add CDTS script for specified environment, version and language
-        await appendScriptElement(document.head, `${cdtsEnvironment.baseUrl}cdts/compiled/wet-${language}.js`, 'cdts-main-js');
+        const sriHash = sriEnabled ? themeSRIHashes[`${cdtsEnvironment.theme}/${cdtsEnvironment.version}`]?.[`compiled/wet-${language}.js`] : null;
+        await appendScriptElement(document.head, `${cdtsEnvironment.baseUrl}cdts/compiled/wet-${language}.js`, 'cdts-main-js', sriHash);
 
         //---[ Process the equivalent of refTop and refFooter
         if (!existingCdtsElem) {
@@ -68,8 +68,7 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
             //if (setWetId) setWetId(wetCurrentId + 1); //no need on initial load
 
             // Create CDTS's localConfig object and apply refTop/refFooter
-            //TODO: Remove sriEnabled false
-            wet.localConfig = { cdnEnv: cdtsEnvironment.cdnEnv, base: { ...baseConfig, isApplication, sriEnabled: false, cdtsSetupExcludeCSS: true } }; //eslint-disable-line
+            wet.localConfig = { cdnEnv: cdtsEnvironment.cdnEnv, base: { ...baseConfig, isApplication, sriEnabled, cdtsSetupExcludeCSS: true } }; //eslint-disable-line
             wet.utilities.applyRefTop(() => { //eslint-disable-line
                 wet.utilities.applyRefFooter(() => { //eslint-disable-line
                     //(first, call the original CDTS "setup" footer-completed handler)
@@ -77,23 +76,14 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
 
                     //Install our WET hooks
                     installWETHooks(routerNavigateTo);
-                    /*$(document).on("wb-ready.wb", () => {  //eslint-disable-line
-                        console.log('!!!!!!!!!!!!!!!!!!!!!!!! WET INITIALIZED !!!!!!!!!!!!!!');
-                        if (setCdtsLoaded) setCdtsLoaded(typeof wet !== 'undefined' ? language : null);
-                    });*/
+                    //(unlike when we reload (see `else` below), initial load has already called `setCdtsLoaded` so no need for `wb-read.wb` event handler)
                 });
             });
-
-            /*//if/when `installRef*` functions are available we could do this instead
-            const cdtsParams = { ...baseConfig, cdnEnv: cdtsEnvironment.cdnEnv, isApplication, cdtsSetupExcludeCSS: true };
-            wet.builder.installRefTop(cdtsParams); //eslint-disable-line
-            wet.builder.installRefFooter(cdtsParams, () => installWETHooks(routerNavigateTo)); //eslint-disable-line*/
         }
         else if (isLangSwitch) {
             await reinstallWET(cdtsEnvironment, language);
-            installWETHooks(routerNavigateTo); //TODO: Confirm we still need
+            installWETHooks(routerNavigateTo);
 
-            //TODO: Cleanup
             //---[ When re-loading WET following a language switch, wait until WET is fuilly initialized before trigering re-renderof CDTS components.
             $(document).on("wb-ready.wb", () => {  //eslint-disable-line
                 console.log('!!!!!!!!!!!!!!!!!!!!!!!! WET INITIALIZED !!!!!!!!!!!!!!');
@@ -103,8 +93,7 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
         }
     }
     catch (error) {
-        console.error('>>>', error);
-        //TODO: Handle errors by...?
+        console.error('CDTS: An error occured installing CDTS and WET onto the page. Page may not render properly. -', error);
     }
 }
 
@@ -125,7 +114,6 @@ async function reinstallWET(cdtsEnvironment) {
     document.head.querySelectorAll('object').forEach((o) => {
         const src = o.data || '';
         if (src.startsWith(cdtsEnvironment.baseUrl) && src.includes('/wet-boew/js/')) {
-            console.log('REMOVING OBJECT>>>>', o);
             o.remove();
         }
     });
@@ -136,7 +124,6 @@ async function reinstallWET(cdtsEnvironment) {
     const reinsertElems = [];
 
     //Remove WET-related script from body (do NOT remove jqeury - it leads to problems)
-    //TODO: Make sure it is ok for gcIntranet as well
     document.body.querySelectorAll('script').forEach((script) => {
         const src = script.src || '';
         if (src.startsWith(cdtsEnvironment.baseUrl) && (src.includes('/wet-boew/js/') || src.endsWith('/cdts/cdtscustom.js')) && (!src.endsWith('/jquery.min.js'))) {
@@ -155,7 +142,7 @@ async function reinstallWET(cdtsEnvironment) {
 
     //Add back the elements we removed from body in the same order
     for (const elem of reinsertElems) {
-        await appendScriptElement(document.body, elem.src);
+        await appendScriptElement(document.body, elem.src, elem.getAttribute('id'), elem.getAttribute('integrity'));
     }
 }
 
@@ -180,7 +167,7 @@ async function reinstallWET(cdtsEnvironment) {
  *       - routeNavigateTo: {function} OPTIONAL - If using CDTS's top or side menu or any customized link pointing within the application,
  *                                                this should be a function which takes a "location" parameter that will be called by CDTS links
  *                                                to perform navigation. For example if using react-router-dom, this function would simply be `(location) => router.navigate(location)`
- *                                                (if not specified, application relative links should still work but will cause a browser navigation/full page reload.
+ *                                                (IMPORTANT: if not specified, application relative links will cause a browser navigation/full page reload. Language switching will also not be operational)
  * 
  * (For details on CDTS initialSetup and section config objects, see CDTS documentation https://cenw-wscoe.github.io/sgdc-cdts/docs/internet-en.html and/or sample pages https://cdts.service.canada.ca/app/cls/WET/gcweb/v4_0_47/cdts/samples/)
  */

@@ -11,17 +11,19 @@ const cdtsSetup = {
         exitSecureSite: {
             exitScript: true,
             displayModal: true,
-            exitURL: '/exit', //TODO: Remove
-            exitMsg: 'This is a custom exit message.', //TODO: Remove
-            targetWarning: 'This is a custom new window message.', //TODO: Remove
+            //exitURL: '/exit', //exitURL is not current supported in cdts-react
+            exitMsg: 'This is a custom exit message.',
+            targetWarning: 'This is a custom new window message.',
             exitDomains: 'www.google.com',
         },
+        //sriEnabled: false,
     },
     top: {
         appName: [{
             text: "Application name",
             href: "/"
         }],
+        //NOTE: set lngLinks to `null` to disable, leave undefined for default link
         //lngLinks: [{ "href": "?lang=fr", "lang": "fr", "text": "Français" }],
 
         breadcrumbs: [{
@@ -84,6 +86,7 @@ const cdtsSetup = {
     },
 };
 
+//TODO: Cleanup
 //https://shallowdepth.online/posts/2022/04/why-usenavigate-hook-in-react-router-v6-triggers-waste-re-renders-and-how-to-solve-it/
 //https://github.com/remix-run/react-router/issues/7634#issuecomment-1513091516    <<<
 //https://github.com/remix-run/react-router/issues/7634#issuecomment-1306650156
@@ -91,6 +94,6 @@ const cdtsSetup = {
 const router = createBrowserRouter([{ path: "*", element: <App /> }]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-//TODO: Move StrictMode around App, see how it affect initial rendering on CDTS
-root.render(/*<React.StrictMode>*/
-    <Cdts mode="app" initialSetup={cdtsSetup} routerNavigateTo={(location) => router.navigate(location)}><RouterProvider router={router} /></Cdts>/*</React.StrictMode>*/);
+root.render(
+    <Cdts mode="app" initialSetup={cdtsSetup} routerNavigateTo={(location) => router.navigate(location)}><RouterProvider router={router} /></Cdts>
+);

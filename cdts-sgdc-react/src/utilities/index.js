@@ -130,7 +130,6 @@ export function replaceElementChildren(parentElemRef, newChildElem) {
 /** Install a click event handler of the specified language (anchor/link) element which will cancel default behavior and invoke the specified callback(). */
 export function installLangLinkEvent(langLinkElem, callback) {
     if (langLinkElem) {
-        //TODO: not just click, keydown/keyup as well https://stackoverflow.com/questions/8927208/catching-event-when-following-a-link
         langLinkElem.addEventListener('click', (e) => {
             e.preventDefault();
 
@@ -175,7 +174,6 @@ export function installNavLinkEvents(parentElem, navigateToCallback) {
         const url = elem.getAttribute('href');
 
         if (isUrlRelative(url)) {
-            //TODO: not just click, keydown/keyup as well https://stackoverflow.com/questions/8927208/catching-event-when-following-a-link
             elem.addEventListener('click', (e) => {
                 e.preventDefault();
                 try {

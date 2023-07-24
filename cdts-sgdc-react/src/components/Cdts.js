@@ -32,7 +32,6 @@ function installWETHooks(routerNavigateTo) {
     });
 }
 
-//TODO: Add a property "render even if wet is not ready" for App rendered?
 //TODO: "main" also has to be directly under body?  (confirm, maybe WET will be fixed?)
 //TODO: https://github.blog/2021-02-12-avoiding-npm-substitution-attacks/
 //TODO: Dependencies Version specifier in main package  (and update versions?)

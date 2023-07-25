@@ -7,7 +7,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.12.0",
-    "cdts-sgdc-react": "file:../cdts-sgdc-react"
+    "@cdts-sgdc/cdts-sgdc-react": "file:../cdts-sgdc-react"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",

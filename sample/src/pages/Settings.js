@@ -1,8 +1,8 @@
-import { WetExternalLink } from 'cdts-sgdc-react';
+import { WetExternalLink } from '@cdts-sgdc/cdts-sgdc-react';
 
-function Page2() {
+function Settings() {
     return (<>
-        <h2>This is the second page.</h2>
+        <h2>The "settings" page (or a least a page called Settings).</h2>
         <h3>Normal links (popup may show up inconsistently depending on timing)</h3>
         <p><a href="https://www.google.com">Google-com</a></p>
         <p><a href="https://www.google.com" target="_blank" rel="noreferrer">Google-com-newin</a></p>
@@ -18,4 +18,4 @@ function Page2() {
     );
 }
 
-export default Page2;
+export default Settings;

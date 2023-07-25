@@ -1,6 +1,7 @@
 import { default as React, useEffect } from 'react';
 
-import { resetWetComponents, useCdtsContext } from 'cdts-sgdc-react';
+import { useCdtsContext } from './Cdts';
+import { resetWetComponents } from '../utilities/wet';
 
 /**
  * Component used to surround HTML element(s) making use of WET "component(s)".
@@ -17,7 +18,6 @@ function WetContainer({ wetComponentNames, resetOnUpdate, children }) {
     const { wetInstanceId } = useCdtsContext();
 
     useEffect(() => {
-        console.log('THIS IS WetContainer EFFECTED!!!');
         //---[ Re-init WET component(s)...
         if (wetComponentNames) {
             resetWetComponents(wetComponentNames);

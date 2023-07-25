@@ -1,5 +1,5 @@
 {
-  "name": "cdts-sgdc-react-parent",
+  "name": "@cdts-sgdc/cdts-sgdc-react-parent",
   "version": "0.0.1",
   "description": "Parent/workspace package",
   "license": "MIT",

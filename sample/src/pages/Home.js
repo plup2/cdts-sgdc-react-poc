@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-import { useCdtsContext } from 'cdts-sgdc-react';
+import { useCdtsContext } from '@cdts-sgdc/cdts-sgdc-react';
 
 const newTop = {
     appName: [{
@@ -54,22 +54,6 @@ const newTop = {
         }],
     appSettings: [{ href: "/settings" }],
     signIn: [{ href: "/" }],
-
-    /*headerMenu: {
-        text: "Account",
-        links: [{
-            href: "/",
-            text: "Link 1"
-        },
-        {
-            href: "/settings",
-            text: "Link 2",
-        }],
-        logoutLink: {
-            href: "/about",
-            text: "Logout Link",
-        }
-    }*/
 };
 
 const newPreFooter = {
@@ -146,12 +130,12 @@ const newSectionMenu = {
 };
 
 
-function Page1() {
+function Home() {
     const { setLanguage, setTop, setPreFooter, setFooter, setSectionMenu } = useCdtsContext();
 
     return (
         <>
-            <p>This is my main content</p>
+            <p>This some content</p>
             <button onClick={() => setTop(newTop)}>setTop!</button>
             <button onClick={() => setPreFooter(newPreFooter)}>setPreFooter!</button>
             <button onClick={() => setFooter(newFooter)}>setFooter!</button>
@@ -161,4 +145,4 @@ function Page1() {
     );
 }
 
-export default memo(Page1);
+export default memo(Home);

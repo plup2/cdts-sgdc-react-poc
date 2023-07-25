@@ -1,5 +1,5 @@
 {
-  "name": "cdts-sgdc-react",
+  "name": "@cdts-sgdc/cdts-sgdc-react",
   "version": "0.1.0",
   "description": "React components for the Centrally Deployed Templates Solution (CDTS)",
   "keywords": [
@@ -36,7 +36,6 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
     "build": "rm -rf dist && mkdir dist && cross-env NODE_ENV=production babel src -d dist --copy-files",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -177,7 +177,7 @@ export function installNavLinkEvents(parentElem, navigateToCallback) {
             elem.addEventListener('click', (e) => {
                 e.preventDefault();
                 try {
-                    navigateToCallback(url);
+                    navigateToCallback(url, e);
                 }
                 catch (error) {
                     console.error('CDTS: An error occured handling navigation link event', error);

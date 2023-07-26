@@ -8,10 +8,10 @@ import { resetWetComponents } from '../utilities/wet';
  * 
  * This component performs two functions:
  *   - Triggers a reinitialization of the specified WET components when this React component is re-rendered.
- *   - Makes sure children are re-created from scratch on render (necessary because WET components could modify the DOM wihtout React "knowing")
+ *   - Makes sure children are re-created from scratch on render instead of cached by React (necessary because WET components could modify the DOM wihtout React "knowing", which can lead to inconsistencies)
  * 
  * Properties:
- *   - wetComponentNames: {string|[string...]} - The name of the WET component(s) used in children
+ *   - wetComponentNames: {string|[string...]} - The name of the WET component(s) used in the children content
  *   - resetOnUpdate: {boolean} default false - If true, WET component(s) will be re-initialized on every Rect component update, otherwise only on every render.
  */
 function WetContainer({ wetComponentNames, resetOnUpdate, children }) {

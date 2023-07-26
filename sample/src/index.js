@@ -69,8 +69,9 @@ const cdtsSetup = {
     },
 };
 
-//Creating a BrowerRouter/RouterPrivider so we can use its navigate function
-//( https://github.com/remix-run/react-router/issues/7634#issuecomment-1513091516 )
+// Creating a BrowerRouter/RouterProvider so we can use its navigate function
+// (the remaining routes can still be defined with a `<Routes>` inside the `<App />` component)
+// ( https://github.com/remix-run/react-router/issues/7634#issuecomment-1513091516 )
 const router = createBrowserRouter([{ path: "*", element: <App /> }]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

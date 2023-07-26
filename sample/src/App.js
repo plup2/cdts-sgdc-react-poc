@@ -9,10 +9,12 @@ const Form = lazy(() => import('./pages/Form'));
 
 function App() {
 
+    //NOTE: This example only deals with "top" for brevety, other sections should also be handled as needed.
+    //NOTE: It would also be good practice to separate the creation of the "top" and other section objects in another module.
     const { language: cdtsLanguage, top, setTop } = useCdtsContext();
 
     //---[ Used to respond to language changes
-    //---[ (NOTE: Don't include "top" or other CDTS sections we're changing in dependencies for this effect hook!)
+    //---[ (NOTE: Don't include "top" or other CDTS sections we're changing in dependency list for this effect hook!)
     useEffect(() => {
         // Create new "top" config in proper language
         const newTopConfig = {

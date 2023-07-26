@@ -3,7 +3,13 @@
 - Main project: `cdts-sgdc-react`
 - Sample/development application: `sample`
 
-## To Build
+## To Use - Main Documentation
+
+[See here for the main documentation/usage guide](./cdts-sgdc-react/README.md)
+
+## Development
+
+### To Build
 
 ```
 npm run build -w cdts-sgdc-react
@@ -14,7 +20,7 @@ cd cdts-sgdc-react
 npm run build
 ```
 
-## To Run sample project
+### To Run sample project
 
 Build `cdts-sgdc-react` package and then:
 

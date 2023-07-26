@@ -2,6 +2,7 @@
 * text=auto
 
 # Ensure LF line ending for our text files of interest
+LICENSE text eof=lf
 *.js text eol=lf
 *.json text eol=lf
 *.css text eol=lf

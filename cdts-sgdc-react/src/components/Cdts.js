@@ -161,7 +161,7 @@ async function reinstallWET(cdtsEnvironment) {
  *       - routeNavigateTo: {function} OPTIONAL - If using CDTS's top or side menu, language switching or any customized link pointing within the application,
  *                                                this should be a function which takes a "location" parameter that will be called by CDTS links
  *                                                to perform navigation. For example if using react-router-dom, this function would simply be `(location) => router.navigate(location)`
- *                                                (IMPORTANT: if not specified, application relative links will cause a browser navigation/full page reload. Language switching will also not operate properly.)
+ *                                                (IMPORTANT: if not specified, application relative links will cause a browser navigation/full page reload.)
  * 
  * (For details on CDTS initialSetup and section config objects, see CDTS documentation https://cenw-wscoe.github.io/sgdc-cdts/docs/internet-en.html and/or sample pages https://cdts.service.canada.ca/app/cls/WET/gcweb/v4_0_47/cdts/samples/)
  */

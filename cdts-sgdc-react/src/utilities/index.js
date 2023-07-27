@@ -2,6 +2,8 @@ export { default as cdtsDefaults } from './defaults';
 
 /**
  * Returns whether or not the specified URL is relative - ignores (ie returns false) empty strings, URLs in querystring and anchor links (ie '#')
+ *
+ * NOTE: Anchor link ('#') are considered absolute by this function for Cdts to NOT install its navigation event on such links.
 */
 export function isUrlRelative(url) {
     if ((url || '') === '') return false;

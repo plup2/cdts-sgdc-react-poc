@@ -4,6 +4,51 @@
  */
 
 module.exports = {
+  // -------------------------------
+  // The following react-create-app configuration obtain after "ejecting" (also see transformers in config/jest)
+  // Ejected configuration was then adapted so our tests can be in the "test" directory instead of mingled with our source files
+  roots: [
+    "<rootDir>/src",
+    "<rootDir>/test",
+  ],
+  collectCoverageFrom: [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts"
+  ],
+  setupFiles: [
+    "react-app-polyfill/jsdom"
+  ],
+  setupFilesAfterEnv: [],
+  testMatch: [
+    "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+    "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}",
+    "<rootDir>/test/**/*.{spec,test}.{js,jsx,ts,tsx}"
+  ],
+  testEnvironment: "jsdom",
+  transform: {
+    "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "<rootDir>/config/jest/babelTransform.js",
+    "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
+    "^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
+  },
+  transformIgnorePatterns: [
+    "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
+    "^.+\\.module\\.(css|sass|scss)$"
+  ],
+  modulePaths: [],
+  moduleNameMapper: {
+    "^react-native$": "react-native-web",
+    "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
+  },
+  moduleFileExtensions: ["web.js", "js", "web.ts", "ts", "web.tsx", "tsx", "json", "web.jsx", "jsx", "node"],
+  watchPlugins: [
+    "jest-watch-typeahead/filename",
+    "jest-watch-typeahead/testname"
+  ],
+  resetMocks: true,
+  //--------------------------------
+  //--------------------------------
+
+
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -11,19 +56,19 @@ module.exports = {
   // bail: 0,
 
   // The directory where Jest should store its cached dependency information
-  // cacheDirectory: "C:\\Users\\pierre.lupien\\AppData\\Local\\Temp\\jest",
+  // cacheDirectory: "\\Temp\\jest",
 
   // Automatically clear mock calls, instances and results before every test
   clearMocks: true,
 
   // Indicates whether the coverage information should be collected while executing the test
-  collectCoverage: true,
+  collectCoverage: false,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   // collectCoverageFrom: undefined,
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "coverage",
+  coverageDirectory: "<rootDir>/coverage",
 
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
@@ -115,7 +160,6 @@ module.exports = {
 
   // The root directory that Jest should scan for tests and modules within
   //rootDir: undefined,
-  rootDir: 'test',
 
   // A list of paths to directories that Jest should use to search for files in
   // roots: [
@@ -137,8 +181,8 @@ module.exports = {
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],
 
-  // The test environment that will be used for testing
-  testEnvironment: "jsdom",
+  // The test environment that will be used for testing (jsdom or node)
+  //testEnvironment: "jsdom",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},

@@ -18,6 +18,9 @@ Issues can be reported on the [Github repository](https://github.com/wet-boew/cd
 ## Basic Usage
 
 To use, in your project: 
+
+  - Add the cdts package to your React project: `npm install --save @cdts-sgdc/cdts-sgdc-react`
+
   - In index.html, add the stylesheet element to the HEAD section corresponding to the desired template/environment:
 
     | Version                   | Theme                          | Environment | Mode       | CSS URL                                                                                                                  |

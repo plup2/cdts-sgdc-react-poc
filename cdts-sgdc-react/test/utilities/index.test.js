@@ -1,219 +1,223 @@
 
-//https://jestjs.io/docs/getting-started
-//https://stackoverflow.com/questions/72371227/jest-i-want-to-put-test-code-under-project-test-directory-but-configuration
-
 import {
     isUrlRelative, getCdtsHref, deriveCDTSEnv, findCDTSCssHref,
-    appendScriptElement
+    appendScriptElement, replaceElementChildren, getLanguageLinkConfig,
+    cleanupBaseConfig
 } from '../../src/utilities';
 
 //---[ ***** isUrlRelative
 
-test('isUrlRelative empty', () => {
-    expect(isUrlRelative()).toBe(false);
-    expect(isUrlRelative('')).toBe(false);
-});
+describe('isUrlRelative tests', () => {
+    test('empty', () => {
+        expect(isUrlRelative()).toBe(false);
+        expect(isUrlRelative('')).toBe(false);
+    });
 
-test('isUrlRelative absolute', () => {
-    expect(isUrlRelative('https://www.google.ca')).toBe(false);
-    expect(isUrlRelative('https://www.google.ca?l=en')).toBe(false); //with query string parameter for good measure
-    expect(isUrlRelative('https://www.google.ca#section')).toBe(false); //with anchor for good measure
-});
+    test('absolute', () => {
+        expect(isUrlRelative('https://www.google.ca')).toBe(false);
+        expect(isUrlRelative('https://www.google.ca?l=en')).toBe(false); //with query string parameter for good measure
+        expect(isUrlRelative('https://www.google.ca#section')).toBe(false); //with anchor for good measure
+    });
 
-test('isUrlRelative protocol-relative-is-absolute', () => {
-    //(protocol-relative considered absolute for us)
-    expect(isUrlRelative('//www.google.ca')).toBe(false);
-    expect(isUrlRelative('//www.google.ca?l=en')).toBe(false); //with query string parameter for good measure
-    expect(isUrlRelative('//www.google.ca#section')).toBe(false); //with anchor for good measure
-});
+    test('protocol-relative-is-absolute', () => {
+        //(protocol-relative considered absolute for us)
+        expect(isUrlRelative('//www.google.ca')).toBe(false);
+        expect(isUrlRelative('//www.google.ca?l=en')).toBe(false); //with query string parameter for good measure
+        expect(isUrlRelative('//www.google.ca#section')).toBe(false); //with anchor for good measure
+    });
 
-test('isUrlRelative relative', () => {
-    expect(isUrlRelative('/mypage')).toBe(true);
-    expect(isUrlRelative('/mypage/other?l=en')).toBe(true); //with query string parameter for good measure
-    expect(isUrlRelative('/mypage/other#section')).toBe(true); //with anchor for good measure
+    test('relative', () => {
+        expect(isUrlRelative('/mypage')).toBe(true);
+        expect(isUrlRelative('/mypage/other?l=en')).toBe(true); //with query string parameter for good measure
+        expect(isUrlRelative('/mypage/other#section')).toBe(true); //with anchor for good measure
 
-    expect(isUrlRelative('mypage')).toBe(true);
-    expect(isUrlRelative('mypage/other?l=en')).toBe(true); //with query string parameter for good measure
-    expect(isUrlRelative('mypage/other#section')).toBe(true); //with anchor for good measure
-});
+        expect(isUrlRelative('mypage')).toBe(true);
+        expect(isUrlRelative('mypage/other?l=en')).toBe(true); //with query string parameter for good measure
+        expect(isUrlRelative('mypage/other#section')).toBe(true); //with anchor for good measure
+    });
 
-test('isUrlRelative anchor-relative-is-absolute', () => {
-    //(anchor links are considered absolute, see function);
-    expect(isUrlRelative('#')).toBe(false);
-    expect(isUrlRelative('#bla')).toBe(false);
+    test('anchor-relative-is-absolute', () => {
+        //(anchor links are considered absolute, see function);
+        expect(isUrlRelative('#')).toBe(false);
+        expect(isUrlRelative('#bla')).toBe(false);
+    });
 });
 
 //---[ ***** getCdtsHref
 
-test('getCdtsHref prod-gcweb-specific', () => {
-    expect(getCdtsHref({
-        theme: "gcweb",
-        cdnEnv: "prod",
-        version: "v9_9_9",
-    })).toMatch(/^https:\/\/www.canada.ca\/etc\/designs\/canada\/cdts\/gcweb\/v9_9_9\//);
-});
+describe('getCdtsHref tests', () => {
+    test('prod-gcweb-specific', () => {
+        expect(getCdtsHref({
+            theme: "gcweb",
+            cdnEnv: "prod",
+            version: "v9_9_9",
+        })).toMatch(/^https:\/\/www.canada.ca\/etc\/designs\/canada\/cdts\/gcweb\/v9_9_9\//);
+    });
 
-test('getCdtsHref prod-gcintranet-specific', () => {
-    expect(getCdtsHref({
-        theme: "gcintranet",
-        cdnEnv: "prod",
-        version: "v9_9_9",
-    })).toMatch(/^https:\/\/cdts.service.canada.ca\/app\/cls\/WET\/gcintranet\/v9_9_9\//);
-});
+    test('prod-gcintranet-specific', () => {
+        expect(getCdtsHref({
+            theme: "gcintranet",
+            cdnEnv: "prod",
+            version: "v9_9_9",
+        })).toMatch(/^https:\/\/cdts.service.canada.ca\/app\/cls\/WET\/gcintranet\/v9_9_9\//);
+    });
 
-test('getCdtsHref esdcprod-gcweb-specific', () => {
-    expect(getCdtsHref({
-        theme: "gcweb",
-        cdnEnv: "esdcprod",
-        version: "v9_9_9",
-    })).toMatch(/^https:\/\/cdts.service.canada.ca\/app\/cls\/WET\/gcweb\/v9_9_9\//);
-});
+    test('esdcprod-gcweb-specific', () => {
+        expect(getCdtsHref({
+            theme: "gcweb",
+            cdnEnv: "esdcprod",
+            version: "v9_9_9",
+        })).toMatch(/^https:\/\/cdts.service.canada.ca\/app\/cls\/WET\/gcweb\/v9_9_9\//);
+    });
 
-test('getCdtsHref esdcprod-gcintranet-specific', () => {
-    expect(getCdtsHref({
-        theme: "gcintranet",
-        cdnEnv: "esdcprod",
-        version: "v9_9_9",
-    })).toMatch(/^https:\/\/templates.service.gc.ca\/app\/cls\/WET\/gcintranet\/v9_9_9\//);
-});
+    test('esdcprod-gcintranet-specific', () => {
+        expect(getCdtsHref({
+            theme: "gcintranet",
+            cdnEnv: "esdcprod",
+            version: "v9_9_9",
+        })).toMatch(/^https:\/\/templates.service.gc.ca\/app\/cls\/WET\/gcintranet\/v9_9_9\//);
+    });
 
-test('getCdtsHref prod-gcweb-rolling', () => {
-    expect(getCdtsHref({
-        theme: "gcweb",
-        cdnEnv: "prod",
-        version: "rn",
-    })).toMatch(/^https:\/\/www.canada.ca\/etc\/designs\/canada\/cdts\/gcweb\/rn\//);
-});
+    test('prod-gcweb-rolling', () => {
+        expect(getCdtsHref({
+            theme: "gcweb",
+            cdnEnv: "prod",
+            version: "rn",
+        })).toMatch(/^https:\/\/www.canada.ca\/etc\/designs\/canada\/cdts\/gcweb\/rn\//);
+    });
 
-test('getCdtsHref prod-gcintranet-rolling', () => {
-    expect(getCdtsHref({
-        theme: "gcintranet",
-        cdnEnv: "prod",
-        version: "rn",
-    })).toMatch(/^https:\/\/cdts.service.canada.ca\/rn\/cls\/WET\/gcintranet\//);
-});
+    test('prod-gcintranet-rolling', () => {
+        expect(getCdtsHref({
+            theme: "gcintranet",
+            cdnEnv: "prod",
+            version: "rn",
+        })).toMatch(/^https:\/\/cdts.service.canada.ca\/rn\/cls\/WET\/gcintranet\//);
+    });
 
-test('getCdtsHref esdcprod-gcweb-rolling', () => {
-    expect(getCdtsHref({
-        theme: "gcweb",
-        cdnEnv: "esdcprod",
-        version: "rn",
-    })).toMatch(/^https:\/\/cdts.service.canada.ca\/rn\/cls\/WET\/gcweb\//);
-});
+    test('esdcprod-gcweb-rolling', () => {
+        expect(getCdtsHref({
+            theme: "gcweb",
+            cdnEnv: "esdcprod",
+            version: "rn",
+        })).toMatch(/^https:\/\/cdts.service.canada.ca\/rn\/cls\/WET\/gcweb\//);
+    });
 
-test('getCdtsHref esdcprod-gcintranet-rolling', () => {
-    expect(getCdtsHref({
-        theme: "gcintranet",
-        cdnEnv: "esdcprod",
-        version: "rn",
-    })).toMatch(/^https:\/\/templates.service.gc.ca\/rn\/cls\/WET\/gcintranet\//);
-});
+    test('esdcprod-gcintranet-rolling', () => {
+        expect(getCdtsHref({
+            theme: "gcintranet",
+            cdnEnv: "esdcprod",
+            version: "rn",
+        })).toMatch(/^https:\/\/templates.service.gc.ca\/rn\/cls\/WET\/gcintranet\//);
+    });
 
-test('getCdtsHref custom', () => {
-    expect(getCdtsHref({
-        theme: "gcweb",
-        cdnEnv: "https://server2.domain.net/cdts/myversion/",
-        version: "v9_9_9",
-    })).toMatch(/^https:\/\/server2.domain.net\/cdts\/myversion\//);
-});
+    test('custom', () => {
+        expect(getCdtsHref({
+            theme: "gcweb",
+            cdnEnv: "https://server2.domain.net/cdts/myversion/",
+            version: "v9_9_9",
+        })).toMatch(/^https:\/\/server2.domain.net\/cdts\/myversion\//);
+    });
 
 
-test('getCdtsHref invalid-cdnENv-is-prod', () => {
-    expect(getCdtsHref({
-        theme: "gcweb",
-        cdnEnv: "invalidValue",
-        version: "v9_9_9",
-    })).toMatch(/^https:\/\/www.canada.ca\/etc\/designs\/canada\/cdts\/gcweb\/v9_9_9\//);
+    test('invalid-cdnENv-is-prod', () => {
+        expect(getCdtsHref({
+            theme: "gcweb",
+            cdnEnv: "invalidValue",
+            version: "v9_9_9",
+        })).toMatch(/^https:\/\/www.canada.ca\/etc\/designs\/canada\/cdts\/gcweb\/v9_9_9\//);
+    });
 });
 
 //---[ ***** deriveCDTSEnv
 
-test('deriveCDTSEnv null-is-null', () => {
-    expect(deriveCDTSEnv(null)).toBe(null);
-});
-
-test('deriveCDTSEnv blank-is-null', () => {
-    expect(deriveCDTSEnv('')).toBe(null);
-});
-
-test('deriveCDTSEnv prod-gcweb-specific', () => {
-    expect(deriveCDTSEnv("https://www.canada.ca/etc/designs/canada/cdts/gcweb/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://www.canada.ca/etc/designs/canada/cdts/gcweb/v9_9_9/",
-        theme: "gcweb",
-        cdnEnv: "prod",
-        version: "v9_9_9",
+describe('deriveCDTSEnv tests', () => {
+    test('null-is-null', () => {
+        expect(deriveCDTSEnv(null)).toBe(null);
     });
-});
 
-test('deriveCDTSEnv prod-gcintranet-specific', () => {
-    expect(deriveCDTSEnv("https://cdts.service.canada.ca/app/cls/WET/gcintranet/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://cdts.service.canada.ca/app/cls/WET/gcintranet/v9_9_9/",
-        theme: "gcintranet",
-        cdnEnv: "prod",
-        version: "v9_9_9",
+    test('blank-is-null', () => {
+        expect(deriveCDTSEnv('')).toBe(null);
     });
-});
 
-test('deriveCDTSEnv esdcprod-gcweb-specific', () => {
-    expect(deriveCDTSEnv("https://cdts.service.canada.ca/app/cls/WET/gcweb/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://cdts.service.canada.ca/app/cls/WET/gcweb/v9_9_9/",
-        theme: "gcweb",
-        cdnEnv: "esdcprod",
-        version: "v9_9_9",
+    test('prod-gcweb-specific', () => {
+        expect(deriveCDTSEnv("https://www.canada.ca/etc/designs/canada/cdts/gcweb/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://www.canada.ca/etc/designs/canada/cdts/gcweb/v9_9_9/",
+            theme: "gcweb",
+            cdnEnv: "prod",
+            version: "v9_9_9",
+        });
     });
-});
 
-test('deriveCDTSEnv esdcprod-gcintranet-specific', () => {
-    expect(deriveCDTSEnv("https://templates.service.gc.ca/app/cls/WET/gcintranet/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://templates.service.gc.ca/app/cls/WET/gcintranet/v9_9_9/",
-        theme: "gcintranet",
-        cdnEnv: "esdcprod",
-        version: "v9_9_9",
+    test('prod-gcintranet-specific', () => {
+        expect(deriveCDTSEnv("https://cdts.service.canada.ca/app/cls/WET/gcintranet/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://cdts.service.canada.ca/app/cls/WET/gcintranet/v9_9_9/",
+            theme: "gcintranet",
+            cdnEnv: "prod",
+            version: "v9_9_9",
+        });
     });
-});
 
-test('deriveCDTSEnv prod-gcweb-rolling', () => {
-    expect(deriveCDTSEnv("https://www.canada.ca/etc/designs/canada/cdts/gcweb/rn/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://www.canada.ca/etc/designs/canada/cdts/gcweb/rn/",
-        theme: "gcweb",
-        cdnEnv: "prod",
-        version: "rn",
+    test('esdcprod-gcweb-specific', () => {
+        expect(deriveCDTSEnv("https://cdts.service.canada.ca/app/cls/WET/gcweb/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://cdts.service.canada.ca/app/cls/WET/gcweb/v9_9_9/",
+            theme: "gcweb",
+            cdnEnv: "esdcprod",
+            version: "v9_9_9",
+        });
     });
-});
 
-test('deriveCDTSEnv prod-gcintranet-rolling', () => {
-    expect(deriveCDTSEnv("https://cdts.service.canada.ca/rn/cls/WET/gcintranet/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://cdts.service.canada.ca/rn/cls/WET/gcintranet/",
-        theme: "gcintranet",
-        cdnEnv: "prod",
-        version: "rn",
+    test('esdcprod-gcintranet-specific', () => {
+        expect(deriveCDTSEnv("https://templates.service.gc.ca/app/cls/WET/gcintranet/v9_9_9/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://templates.service.gc.ca/app/cls/WET/gcintranet/v9_9_9/",
+            theme: "gcintranet",
+            cdnEnv: "esdcprod",
+            version: "v9_9_9",
+        });
     });
-});
 
-test('deriveCDTSEnv esdcprod-gcweb-rolling', () => {
-    expect(deriveCDTSEnv("https://cdts.service.canada.ca/rn/cls/WET/gcweb/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://cdts.service.canada.ca/rn/cls/WET/gcweb/",
-        theme: "gcweb",
-        cdnEnv: "esdcprod",
-        version: "rn",
+    test('prod-gcweb-rolling', () => {
+        expect(deriveCDTSEnv("https://www.canada.ca/etc/designs/canada/cdts/gcweb/rn/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://www.canada.ca/etc/designs/canada/cdts/gcweb/rn/",
+            theme: "gcweb",
+            cdnEnv: "prod",
+            version: "rn",
+        });
     });
-});
 
-test('deriveCDTSEnv esdcprod-gcintranet-rolling', () => {
-    expect(deriveCDTSEnv("https://templates.service.gc.ca/rn/cls/WET/gcintranet/cdts/cdts-styles.css")).toMatchObject({
-        baseUrl: "https://templates.service.gc.ca/rn/cls/WET/gcintranet/",
-        theme: "gcintranet",
-        cdnEnv: "esdcprod",
-        version: "rn",
+    test('prod-gcintranet-rolling', () => {
+        expect(deriveCDTSEnv("https://cdts.service.canada.ca/rn/cls/WET/gcintranet/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://cdts.service.canada.ca/rn/cls/WET/gcintranet/",
+            theme: "gcintranet",
+            cdnEnv: "prod",
+            version: "rn",
+        });
     });
-});
 
-test('deriveCDTSEnv custom', () => {
-    expect(deriveCDTSEnv("https://server2.domain.net:8282/app/cls/WET/gcweb/v4_1_0/cdts/cdts-app-styles.css")).toMatchObject({
-        baseUrl: "https://server2.domain.net:8282/app/cls/WET/gcweb/v4_1_0/",
-        theme: "gcweb",
-        cdnEnv: "https://server2.domain.net:8282/app/cls/WET/gcweb/v4_1_0/",
-        version: "v4_1_0",
+    test('esdcprod-gcweb-rolling', () => {
+        expect(deriveCDTSEnv("https://cdts.service.canada.ca/rn/cls/WET/gcweb/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://cdts.service.canada.ca/rn/cls/WET/gcweb/",
+            theme: "gcweb",
+            cdnEnv: "esdcprod",
+            version: "rn",
+        });
+    });
+
+    test('esdcprod-gcintranet-rolling', () => {
+        expect(deriveCDTSEnv("https://templates.service.gc.ca/rn/cls/WET/gcintranet/cdts/cdts-styles.css")).toMatchObject({
+            baseUrl: "https://templates.service.gc.ca/rn/cls/WET/gcintranet/",
+            theme: "gcintranet",
+            cdnEnv: "esdcprod",
+            version: "rn",
+        });
+    });
+
+    test('custom', () => {
+        expect(deriveCDTSEnv("https://server2.domain.net:8282/app/cls/WET/gcweb/v4_1_0/cdts/cdts-app-styles.css")).toMatchObject({
+            baseUrl: "https://server2.domain.net:8282/app/cls/WET/gcweb/v4_1_0/",
+            theme: "gcweb",
+            cdnEnv: "https://server2.domain.net:8282/app/cls/WET/gcweb/v4_1_0/",
+            version: "v4_1_0",
+        });
     });
 });
 
@@ -257,21 +261,125 @@ describe('findCDTSCssHref testing sequentially', () => {
     });
 });
 
-test('appendScriptElement resolves-on-load', () => {
-    return new Promise((resolveTest, rejectTest) => {
+//---[ ***** appendScriptElement
+
+describe('appendScriptElement tests', () => {
+    test('resolves-on-load', () => {
+        return new Promise((resolveTest, rejectTest) => {
+            const parent = document.createElement('div');
+
+            // appendScriptElement is async/returns a Promise which will complete when onload event is triggered...
+            appendScriptElement(parent, 'testsrc', 'testid', 'testsri')
+                .then(resolveTest).catch(rejectTest);
+
+            setTimeout(() => {
+                const scriptElem = parent.querySelector('#testid');
+                if (!scriptElem) rejectTest('Expected <script> element to be found after 250ms of waiting');
+
+                if (scriptElem.getAttribute('src') !== 'testsrc') rejectTest(`Invalid value for script's src attribute: ${scriptElem.getAttribute('src')} (expected: "testsrc")`);
+                if (scriptElem.getAttribute('integrity') !== 'testsri') rejectTest(`Invalid value for script's integrity attribute: ${scriptElem.getAttribute('integrity')} (expected: "testsri")`);
+                if (scriptElem.getAttribute('crossorigin') !== 'anonymous') rejectTest(`Invalid value for script's integrity attribute: ${scriptElem.getAttribute('crossorigin')} (expected: "anonymous")`);
+
+                scriptElem.remove(); //cleanup
+                scriptElem.onload(); //manually call onload event (jsdom will obviously not dot it)
+            }, 250);  //wait 250ms to give time for appendScript to do its job
+        });
+    });
+
+    test('rejects-on-error', () => {
+        return new Promise((resolveTest, rejectTest) => {
+            const parent = document.createElement('div');
+
+            // appendScriptElement is async/returns a Promise which will reject when onerror event is triggered...
+            appendScriptElement(parent, 'testsrcerr', 'testerr', 'testsrierr')
+                .then(() => rejectTest('Exception <script> to throw an error, got resolved instead')).catch((e) => {
+                    resolveTest();
+                });
+
+            setTimeout(() => {
+                const scriptElem = parent.querySelector('#testerr');
+                if (!scriptElem) rejectTest('Expected <script> element to be found after 250ms of waiting');
+
+                scriptElem.remove(); //cleanup
+                scriptElem.onerror('testerror'); //manually call onerror event (jsdom will obviously not dot it)
+            }, 250);  //wait 250ms to give time for appendScript to do its job
+        });
+    });
+});
+
+//---[ ***** replaceElementChildren
+
+describe('replaceElementChildren tests', () => {
+    test('success', () => {
         const parent = document.createElement('div');
+        parent.setAttribute("id", "testid");
+        const ogChild = document.createTextNode('Original child content');
+        parent.appendChild(ogChild);
 
-        // appendScriptElement is async/returns a Promise which will complte when on load event is triggers...
-        appendScriptElement(parent, 'testsrc', 'testid', 'testsri')
-            .then(resolveTest).catch(rejectTest);
+        const newChild = document.createTextNode('New child content');
 
-        setTimeout(() => {
-            const scriptElem = parent.querySelector('script');
-            if (!scriptElem) rejectTest('Expected <script> element to be found after 250ms of waiting');
+        replaceElementChildren(parent, newChild);
 
-            //TODO: Complete
-            scriptElem.onload();
-        }, 250);  //wait 250ms to give time for appendScript to do its job
-        //expect(1).toBe(2);
+        expect(parent.outerHTML).toBe('<div id="testid">New child content</div>');
+    });
+
+    test('nocrash-on-parent-null', () => {
+        const newChild = document.createTextNode('New child content');
+
+        replaceElementChildren(null, newChild);
+
+        //except no exception thrown
+    });
+});
+
+//---[ ***** getLanguageLinkConfig
+
+describe('getLanguageLinkConfig tests', () => {
+    test('french-is-french', () => {
+        expect(getLanguageLinkConfig('fr')).toMatchObject({ lang: 'fr' });
+    });
+
+    test('english-is-english', () => {
+        expect(getLanguageLinkConfig('en')).toMatchObject({ lang: 'en' });
+    });
+
+    test('anythingelse-is-english', () => {
+        expect(getLanguageLinkConfig('zz')).toMatchObject({ lang: 'en' });
+    });
+});
+
+
+//---[ ***** cleanupBaseConfig
+
+describe('cleanupBaseConfig tests', () => {
+    test('null-is-empty', () => {
+        expect(cleanupBaseConfig(null)).toEqual({});
+    });
+
+    test('same-object-if-no-change', () => {
+        const tmp = { myProp: 'Hello', mySub: { myOther: 'World' } };
+
+        expect(cleanupBaseConfig(tmp)).toBe(tmp);
+    });
+
+    test('removes-exitURL', () => {
+        const input = {
+            myProp: 'Hello',
+            mySub: { myOther: 'World' },
+            exitSecureSite: {
+                someProp: 'SomeValue',
+                exitURL: 'https://myserver.domain.net/exitPage',
+            },
+        };
+
+        const output = {
+            myProp: 'Hello',
+            mySub: { myOther: 'World' },
+            exitSecureSite: {
+                someProp: 'SomeValue',
+            },
+        };
+
+        expect(cleanupBaseConfig(input)).toStrictEqual(output);
     });
 });

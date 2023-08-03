@@ -198,7 +198,7 @@ export function installNavLinkEvents(parentElem, navigateToCallback) {
 export function cleanupBaseConfig(baseConfig, issueWarning = false) {
     let vtr = baseConfig || {};
 
-    if (baseConfig.exitSecureSite?.exitURL) {
+    if (vtr.exitSecureSite?.exitURL) {
         if (issueWarning) console.warn('CDTS: Configuration base.exitSecureSite.exitURL not supported for React template, property will be ignored.');
         vtr = { ...vtr };
         delete vtr.exitSecureSite.exitURL;

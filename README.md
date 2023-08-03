@@ -9,6 +9,10 @@
 
 ## Development
 
+### To Initialize
+
+From project root: `npm install`
+
 ### To Build
 
 ```

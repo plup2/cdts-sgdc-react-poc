@@ -128,7 +128,7 @@ root.render(
 
 ## Handling CDTS Language Switching
 
-The CDTS and the WET library support both English and French languages but only can be active at any given time. 
+The CDTS and the WET library support both English and French languages but only one can be active at any given time. 
 When the standard language link is clicked, the CDTS React component will automatically reload CDTS and WET in the proper language.
 The context property `useCdtsContext().language` can be used by the application to re-configure the various section and perform whatever other action is necessary.
 The context function `useCdtsContent().setLanguage(...)` can be called by the application to programatically request a CDTS language switch.
@@ -164,7 +164,7 @@ import Settings from './pages/Settings';
 function App() {
 
     // >>> This example only deals with "top" for brevety, other sections should also be handled as needed.
-    // >>> It would also be good practice to separate the creation of the "top" and other section objects in an other module.
+    // >>> Depending on length, it would also be good practice to separate the creation of the "top" and other section objects in an other module.
     const { language, top, setTop } = useCdtsContext();
 
     // Language Switching "effect" handler
@@ -216,7 +216,7 @@ The `WetContainer` component is used to surround HTML element(s) making use of W
   | wetComponentNames | {string / [string...]} OPTIONAL | The name of the WET component(s) used in the children content                                                                    |
   | resetOnUpdate     | {boolean} OPTIONAL              | default false - If true, WET component(s) will be re-initialized on every Rect component update, otherwise only on every render. |
 
-For example, if using the WET "form" "component":
+For example, if using the WET form validation "component":
 
 ```javascript
 import { default as React, useState } from 'react';

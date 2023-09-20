@@ -142,7 +142,7 @@ It is still possible for the application to customize the standard language link
 And so, for the `lngLinks` property of the `top` section:
   - If left `undefined` or set to `lngLinks: null` : The CDTS React component will install its default event. This is the recommended option.
   - If set to an empty array (i.e. `lngLinks: []`) : Disables the generation of the standard CDTS language link.
-  - If set to any other valid value (e.g. `lngLinks: [{"lang": "fr", "href": "/to_french",	"text": "Français"}]`) : An "normal" language link will be generated accordingly and the CDTS language switch event will NOT be attached. In this case the application will have to call `useCdtsContent().setLanguage(...)` explicitly.
+  - If set to any other valid value (e.g. `lngLinks: [{"lang": "fr", "href": "/to_french",	"text": "Français"}]`) : A "normal" language link will be generated accordingly and the CDTS language switch event will NOT be attached. In this case the application will have to call `useCdtsContent().setLanguage(...)` explicitly.
 
 ### Handling Language Changes
 
@@ -164,7 +164,7 @@ import Settings from './pages/Settings';
 function App() {
 
     // >>> This example only deals with "top" for brevety, other sections should also be handled as needed.
-    // >>> Depending on length, it would also be good practice to separate the creation of the "top" and other section objects in an other module.
+    // >>> Depending on length, it would also be good practice to separate the creation of the "top" and other section objects in another module.
     const { language, top, setTop } = useCdtsContext();
 
     // Language Switching "effect" handler
@@ -285,7 +285,7 @@ export default ExternalLinkSample;
 
 ### resetWetComponents Function
 
-This function is mainly used by the `WetContainer` component and typically would not be called directly, but is begin made available should there be a need.
+This function is mainly used by the `WetContainer` component and typically would not be called directly, but is being made available should there be a need.
 
 This function triggers a re-initialization of all instances of WET components with the specified name(s) currently on the page.
 NOTE: WET components should not be confused with React components, WET components are identified by the CSS class used to mark HTML elements they should apply to (e.g. "wb-frmvld")

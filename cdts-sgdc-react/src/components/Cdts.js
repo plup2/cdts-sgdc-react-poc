@@ -12,6 +12,8 @@ import {
 import { resetWetComponents } from '../utilities/wet';
 import themeSRIHashes from '../utilities/sri';
 
+import "./cdts.css";
+
 const CDTS_MODE_APP = 'app';
 
 const CdtsContext = createContext();
@@ -138,6 +140,31 @@ async function reinstallWET(cdtsEnvironment) {
     }
 }
 
+function getTopPlaceholderHeight(mode, topConfig) {
+    //NOTE: The values returned by this were taken by manual observation of a rendered page using various options.
+    //      Not ideal since any change in CDTS will not automatically be reflected here, but will have to do for now.
+    if (mode === CDTS_MODE_APP) {
+        let height = 109;//banner(49) + appBar_without_buttons(45) + margins(15)
+        if ((!topConfig?.lngLinks) || topConfig?.lngLinks.length > 0) {
+            height += 33; //language link  (either default when null or explicitly specified)
+        }
+        if (topConfig?.appSettings || topConfig?.signIn || topConfig?.signOut) {
+            height += 18; //app bar button margin
+        }
+        if (topConfig?.menuLinks) {
+            height += 55; //menu
+        }
+        if (topConfig?.breadcrumbs) {
+            height += 59; //breadcrumbs
+        }
+        console.warn('height=', height);
+        return height;
+    }
+    else {
+        return 219; //whole top section
+    }
+}
+
 /**
  * CDTS Component.  Injects standard GoC/CDTS UI elements onto the page.
  * 
@@ -170,7 +197,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
     const [cdtsLoadedLang, setCdtsLoadedLang] = useState(null); //the language of the currently loaded CDTS, null until CDTS script has been injected
     const [wetInstanceId, setWetInstanceId] = useState(0); //the WET "instance id", can be used to identify when WET is being reloaded from scratch.
     const [cdtsEnvironment, setCdtsEnvironment] = useState(null);
-    const [language, setLanguage] = useState(initialLanguage || defaults.getInitialLanguage()); //the current application language, could be different than cdtsLoadedLang is CDTS hasn't finished (re)initializing.
+    const [language, setLanguage] = useState(initialLanguage || defaults.getInitialLanguage()); //the current application language, could be different than cdtsLoadedLang if CDTS hasn't finished (re)initializing.
     const [baseConfig, setBaseConfig] = useState(initialSetup?.base);
     const [top, setTop] = useState(initialSetup?.top || {});
     const [preFooter, setPreFooter] = useState(initialSetup?.preFooter || {});
@@ -225,7 +252,25 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
     //NOTE: Because WET imposes rigid rules about the structure of the HTML, we can't really have AppTop/Top/AppFooter/Footer as React components
     //      since they have to be directly under <body>. We'll instead handle those sections "directly" in useEffects
     useEffect(function installTop() { // *************************** TOP
-        if (!cdtsLoadedLang) return;
+        if (!cdtsLoadedLang) {
+            document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
+
+            let tmpElem = document.createElement('div');
+            tmpElem.setAttribute('id', 'cdtsreact-loading-full');
+            tmpElem.classList.add('cdtsreact-top-tag');
+            tmpElem.classList.add('cdtsreact-spinner-full');
+            tmpElem.appendChild(document.createElement('div'));
+            document.body.insertAdjacentElement('afterbegin', tmpElem);
+
+            tmpElem = document.createElement('div');
+            tmpElem.classList.add('cdtsreact-top-tag');
+            tmpElem.classList.add('cdtsreact-spinner');
+            tmpElem.setAttribute('id', 'cdtsreact-loading-top');
+            tmpElem.setAttribute('style', `height: ${getTopPlaceholderHeight(mode, top)}px;`);
+            //tmpElem.appendChild(document.createElement('div'));
+            document.body.insertAdjacentElement('afterbegin', tmpElem);
+            return;
+        }
 
         let lngLinkOverriden = false;
         const topConfig = { cdnEnv: cdtsEnvironment.cdnEnv, ...top, topSecMenu: sectionMenu != null };
@@ -247,6 +292,15 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
 
         //---[ Remove any elements from previous runs
         document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
+
+        // ************************
+        //TODO: Remove
+        /*const ttt = document.createElement('div');
+        ttt.classList.add('cdtsreact-top-tag');
+        ttt.setAttribute("id", "cdts-to-be-removed");
+        ttt.setAttribute("style", "border: 1px solid red; height: 3px;");
+        tmpElem.appendChild(ttt);*/
+        // ************************
 
         //---[ Install right after body
         for (let i = tmpElem.children.length - 1; i >= 0; i--) {
@@ -301,7 +355,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
     return (
         <>
             {!sectionMenu
-                ? mainContent
+                ? cdtsLoadedLang && mainContent
                 : <div className="container">
                     <div className="row">
                         {cdtsLoadedLang && <SectionMenu cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={sectionMenu} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}

@@ -25,10 +25,11 @@ const cdtsSetup = {
         }],
         //NOTE: set lngLinks to `null` to disable, leave undefined for default link
         //lngLinks: [{ "href": "?lang=fr", "lang": "fr", "text": "Français" }],
+        //lngLinks: [],
 
         breadcrumbs: [{
             title: "Home",
-            href: '/',/*"https://www.canada.ca/en/index.html"*/
+            href: '/',/*"https://www.canada.ca/en/index.html" */
         }],
 
         menuLinks: [

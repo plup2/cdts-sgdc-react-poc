@@ -34,7 +34,14 @@ function installWETHooks(routerNavigateTo) {
     });
 }
 
-//TODO: "main" also has to be directly under body?  (confirm, maybe WET will be fixed?)
+//TODO: Does "main" also has to be directly under body?  (confirm, maybe WET will be fixed?)
+/**
+ * Install and initializes CDTS, both initially and after a language switch.
+ *
+ * NOTE: When this function returns successfully, CDTS scripts are loaded but WET loading and initialization are not complete yet.
+ *
+ * @returns true if CDTS script were successfully loaded, otherwise returns false
+ */
 async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication, wetCurrentLang, setCdtsLoaded, wetCurrentId, setWetId, routerNavigateTo) {
     try {
         const isLangSwitch = (language !== wetCurrentLang);
@@ -84,9 +91,12 @@ async function installCDTS(cdtsEnvironment, baseConfig, language, isApplication,
                 if (setWetId) setWetId(wetCurrentId + 1);
             });
         }
+
+        return true;
     }
     catch (error) {
         console.error('CDTS: An error occured installing CDTS and WET onto the page. Page may not render properly. -', error);
+        return false;
     }
 }
 
@@ -189,14 +199,20 @@ function getTopPlaceholderHeight(mode, topConfig) {
  *                                                this should be a function which takes a "location" parameter that will be called by CDTS links
  *                                                to perform navigation. For example if using react-router-dom, this function would simply be `(location) => router.navigate(location)`
  *                                                (IMPORTANT: if not specified, application relative links will cause a browser navigation/full page reload.)
+ *       - waitPanelTimeout: {integer} OPTIONAL - Controls whether to show a "wait while loading" panel until CDTS and WET have finished loading. 
+ *                                                Default value is 0. Possible values:
+ *                                                  < 0  : Loading panel disabled, the application will be displayed right away with CDTS template applied when available
+ *                                                  == 0 : Loading panel will be displayed until CDTS is loaded, no timeout (panel will be cancelled if CDTS is not accessible)
+ *                                                  > 0  : (milliseconds) Loading panel will be displayed until CDTS is loaded or the timeout period has elapsed.
  * 
  * (For details on CDTS initialSetup and section config objects, see CDTS documentation https://cenw-wscoe.github.io/sgdc-cdts/docs/internet-en.html and/or sample pages https://cdts.service.canada.ca/app/cls/WET/gcweb/v4_0_47/cdts/samples/)
  */
-function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage, routerNavigateTo, children }) {
+function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage, routerNavigateTo, waitPanelTimeout = 0, children }) {
 
     const [cdtsLoadedLang, setCdtsLoadedLang] = useState(null); //the language of the currently loaded CDTS, null until CDTS script has been injected
     const [wetInstanceId, setWetInstanceId] = useState(0); //the WET "instance id", can be used to identify when WET is being reloaded from scratch.
     const [cdtsEnvironment, setCdtsEnvironment] = useState(null);
+    const [loadingTimeoutLapsed, setLoadingTimeoutLapsed] = useState(null); //used to track loading "spinner" div
     const [language, setLanguage] = useState(initialLanguage || defaults.getInitialLanguage()); //the current application language, could be different than cdtsLoadedLang if CDTS hasn't finished (re)initializing.
     const [baseConfig, setBaseConfig] = useState(initialSetup?.base);
     const [top, setTop] = useState(initialSetup?.top || {});
@@ -231,7 +247,13 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         //console.log('CDTS: Using environment:', tmpEnvironment);
 
         //---[ Load CDTS on page
-        installCDTS(tmpEnvironment, cleanupBaseConfig(initialSetup?.base, true), language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, wetInstanceId, setWetInstanceId, routerNavigateTo);
+        installCDTS(tmpEnvironment, cleanupBaseConfig(initialSetup?.base, true), language, mode === CDTS_MODE_APP, cdtsLoadedLang || language, setCdtsLoadedLang, wetInstanceId, setWetInstanceId, routerNavigateTo).then((isSuccess) => {
+            if (!isSuccess) {
+                //if there was an error loading CDTS, cancel wait panel
+                document.getElementById('cdtsreact-loading-full')?.remove();
+                setLoadingTimeoutLapsed(true);
+            }
+        });
     }, [environment, mode, language, routerNavigateTo]); //eslint-disable-line react-hooks/exhaustive-deps
 
     //---[ Callback: Changes the page language to specified language (including HTML element's attribute and triggering CDTS language reload)
@@ -253,22 +275,33 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
     //      since they have to be directly under <body>. We'll instead handle those sections "directly" in useEffects
     useEffect(function installTop() { // *************************** TOP
         if (!cdtsLoadedLang) {
-            document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
+            if (loadingTimeoutLapsed === null && waitPanelTimeout > -1) { //if timeout not started and we should have a loading panel
+                setLoadingTimeoutLapsed(false);
 
-            let tmpElem = document.createElement('div');
-            tmpElem.setAttribute('id', 'cdtsreact-loading-full');
-            tmpElem.classList.add('cdtsreact-top-tag');
-            tmpElem.classList.add('cdtsreact-spinner-full');
-            tmpElem.appendChild(document.createElement('div'));
-            document.body.insertAdjacentElement('afterbegin', tmpElem);
+                document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
 
-            tmpElem = document.createElement('div');
-            tmpElem.classList.add('cdtsreact-top-tag');
-            tmpElem.classList.add('cdtsreact-spinner');
-            tmpElem.setAttribute('id', 'cdtsreact-loading-top');
-            tmpElem.setAttribute('style', `height: ${getTopPlaceholderHeight(mode, top)}px;`);
-            //tmpElem.appendChild(document.createElement('div'));
-            document.body.insertAdjacentElement('afterbegin', tmpElem);
+                let tmpElem = document.createElement('div'); //the loading overlay
+                tmpElem.setAttribute('id', 'cdtsreact-loading-full');
+                tmpElem.classList.add('cdtsreact-top-tag');
+                tmpElem.classList.add('cdtsreact-spinner-full');
+                tmpElem.appendChild(document.createElement('div'));
+                document.body.insertAdjacentElement('afterbegin', tmpElem);
+
+                tmpElem = document.createElement('div'); //the top spacer
+                tmpElem.classList.add('cdtsreact-top-tag');
+                tmpElem.classList.add('cdtsreact-spinner');
+                tmpElem.setAttribute('id', 'cdtsreact-loading-top');
+                tmpElem.setAttribute('style', `height: ${getTopPlaceholderHeight(mode, top)}px;`);
+                //tmpElem.appendChild(document.createElement('div'));
+                document.body.insertAdjacentElement('afterbegin', tmpElem);
+
+                if (waitPanelTimeout > 0) { //if timeout not started and should be
+                    setTimeout(() => {
+                        document.getElementById('cdtsreact-loading-full')?.remove();
+                        setLoadingTimeoutLapsed(true);
+                    }, waitPanelTimeout);
+                }
+            }
             return;
         }
 
@@ -293,15 +326,6 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
         //---[ Remove any elements from previous runs
         document.body.querySelectorAll('.cdtsreact-top-tag').forEach((e) => e.remove());
 
-        // ************************
-        //TODO: Remove
-        /*const ttt = document.createElement('div');
-        ttt.classList.add('cdtsreact-top-tag');
-        ttt.setAttribute("id", "cdts-to-be-removed");
-        ttt.setAttribute("style", "border: 1px solid red; height: 3px;");
-        tmpElem.appendChild(ttt);*/
-        // ************************
-
         //---[ Install right after body
         for (let i = tmpElem.children.length - 1; i >= 0; i--) {
             const e = tmpElem.children[i];
@@ -314,7 +338,7 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
             //(WET component will recreate our links, so our events need be re-applied. This happens the in global "wb-ready.wb-menu" handler (installed in installWetHooks))
             resetWetComponents('wb-menu');
         }
-    }, [top, mode, cdtsEnvironment, baseConfig, cdtsLoadedLang, switchLanguage, langLinkCallback, sectionMenu, routerNavigateTo]);
+    }, [top, mode, cdtsEnvironment, baseConfig, cdtsLoadedLang, switchLanguage, langLinkCallback, sectionMenu, routerNavigateTo, loadingTimeoutLapsed, waitPanelTimeout]);
 
     useEffect(function installFooter() { // *************************** FOOTER
         if (!cdtsLoadedLang) return;
@@ -355,11 +379,11 @@ function Cdts({ environment, mode = CDTS_MODE_APP, initialSetup, initialLanguage
     return (
         <>
             {!sectionMenu
-                ? cdtsLoadedLang && mainContent
+                ? (cdtsLoadedLang || (loadingTimeoutLapsed || waitPanelTimeout < 0)) && mainContent
                 : <div className="container">
                     <div className="row">
                         {cdtsLoadedLang && <SectionMenu cdnEnv={cdtsEnvironment.cdnEnv} baseConfig={baseConfig} config={sectionMenu} language={cdtsLoadedLang} routerNavigateTo={routerNavigateTo} />}
-                        {mainContent}
+                        {(cdtsLoadedLang || (loadingTimeoutLapsed || waitPanelTimeout < 0)) && mainContent}
                     </div>
                 </div>}
         </>

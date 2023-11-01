@@ -23,7 +23,7 @@ const cdtsSetup = {
             text: "Application name",
             href: "/"
         }],
-        //NOTE: set lngLinks to `null` to disable, leave undefined for default link
+        //NOTE: set lngLinks to `[]` to disable, leave undefined for default link
         //lngLinks: [{ "href": "?lang=fr", "lang": "fr", "text": "Français" }],
         //lngLinks: [],
 
@@ -34,7 +34,8 @@ const cdtsSetup = {
 
         menuLinks: [
             {
-                text: "Overview"
+                text: "Overview",
+                href: "/"
             },
             {
                 text: "First Section",
@@ -68,6 +69,32 @@ const cdtsSetup = {
         appSettings: [{ href: "/settings" }],
         signIn: [{ href: "/" }],
     },
+    /*secmenu: {
+        sections: [{
+            sectionName: "[Topic - Local navigation]",
+            menuLinks: [
+                {
+                    href: "#", text: "Link 1", subLinks: [
+                        { subhref: "#11a", subtext: "Link 1.1 a)" },
+                        { subhref: "https://www.google.ca", subtext: "Google-ca" },
+                        { subhref: "https://www.google.ca", subtext: "Google-ca-newwin", "newWindow": true },
+                        { subhref: "#11d", subtext: "Link 1.1 d)" }
+                    ]
+                },
+                { href: "https://www.google.com", text: "Google-com" },
+                { href: "https://www.google.com", text: "Google-com-newwin", "newWindow": true },
+                { href: "/settings", text: "Settings" }
+            ]
+        },
+        {
+            sectionName: "Section name 3",
+            menuLinks: [{ "href": "/settings", "text": "Link 1" }]
+        },
+        {
+            sectionName: "Section name ... 27",
+            menuLinks: [{ "href": "https://www.google.ca", "text": "Google-ca" }]
+        }]
+    },*/
 };
 
 // Creating a BrowerRouter/RouterProvider so we can use its navigate function
@@ -77,7 +104,7 @@ const router = createBrowserRouter([{ path: "*", element: <App /> }]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <Cdts mode="app" initialSetup={cdtsSetup} routerNavigateTo={(location) => router.navigate(location)}>
+    <Cdts mode="app" waitPanelTimeout={20000} initialSetup={cdtsSetup} routerNavigateTo={(location) => router.navigate(location)}>
         <RouterProvider router={router} />
     </Cdts>
 );

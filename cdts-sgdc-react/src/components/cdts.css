@@ -1,0 +1,65 @@
+.cdtsreact-spinner-full {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+
+    background-color: lightgray;
+    opacity: 0.8;
+
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.cdtsreact-spinner {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+}
+
+.cdtsreact-spinner span, .cdtsreact-spinner-full span {
+    font-size: 2rem;
+    animation: cdts-fade 1s linear 0s infinite alternate;
+    padding-right: 1rem;
+    color: gray;
+}
+
+.cdtsreact-spinner div, .cdtsreact-spinner-full div {
+    width: 40px;
+    height: 40px;
+    border: 3px solid gray;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: cdts-spin 2.1s linear 0s infinite;
+}
+
+.cdtsreact-spinner-full div {
+    border: 3px solid black;
+    border-top: 3px solid transparent;
+}
+
+@keyframes cdts-spin {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes cdts-fade {
+    from {
+        opacity: 0.5;
+    }
+    to {
+        opacity: 1;
+    }
+}
